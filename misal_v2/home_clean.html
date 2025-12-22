@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta http-equiv="Content-Type" content="text.html;" charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Missale Romanum</title>
+
+    <!-- CSS da nova interface clean -->
+    <link rel="stylesheet" href="home_clean.css" type="text/css" />
+
+    <!-- jQuery e bibliotecas originais -->
+    <script src="jquery.js"></script>
+
+    <!-- Funções originais do misal -->
+    <script src="mis_funciones_misal.js"></script>
+    <script src="mis_funciones_devoc.js"></script>
+
+    <style>
+        /* Esconde scrollbar mas mantém funcionalidade */
+        ::-webkit-scrollbar { display: none; }
+        html, body { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+
+    <script>
+    // ============================================
+    // INICIALIZAÇÃO DAS VARIÁVEIS GLOBAIS
+    // ============================================
+
+    // Previne erro "miciclo is not defined"
+    window.miciclo = window.miciclo ?? "";
+    window.tipoanio2 = window.tipoanio2 ?? "";
+
+    // Preferências (mantém compatibilidade com código original)
+    var mipreferencia = {};
+    mipreferencia['idioma'] = dime_pref("idioma_defecto", 0);
+    mipreferencia['misal_pral'] = dime_pref("misal_pral_defecto", 0);
+    mipreferencia['segundoidioma'] = dime_pref("segundoidioma_defecto", 1);
+    mipreferencia['presentaciontexto'] = dime_pref("presentaciontexto_defecto", 2);
+    mipreferencia['presentacionrespuestas'] = dime_pref("presentacionrespuestas_defecto", 5);
+    mipreferencia['fondo'] = dime_pref("fondo_defecto", 1);
+    mipreferencia['tipoletra'] = dime_pref("tipoletra_defecto", 1);
+    mipreferencia['tamanotexto'] = dime_pref("tamanotexto_defecto", 12);
+    mipreferencia['tamanorubrica'] = dime_pref("tamanorubrica_defecto", 90);
+    mipreferencia['tamanomenus'] = dime_pref("tamanomenus_defecto", 10);
+    mipreferencia['oracionestodos'] = dime_pref("oracionestodos_defecto", 0);
+    mipreferencia['presentacionpestanas'] = dime_pref("presentacionpestanas_defecto", 0);
+    mipreferencia['presentacionbotones'] = dime_pref("presentacionbotones_defecto", 0);
+    mipreferencia['botoneszurdos'] = dime_pref("botoneszurdos_defecto", 0);
+    mipreferencia['ordinarionormal'] = dime_pref("ordinarionormal_defecto", 0);
+    mipreferencia['avance'] = dime_pref("avance_defecto", 100);
+    mipreferencia['margen_superior'] = dime_pref("margen_superior_defecto", 0);
+    mipreferencia['margen_inferior'] = dime_pref("margen_inferior_defecto", 0);
+
+    var tamano_actual = dime_pref("tamano_calend", mipreferencia["tamanotexto"]);
+    var lengua = "latin";
+    var hoy_global = "";
+    var buscafecha = $.Deferred();
+    var llegueaqui = $.Deferred();
+
+    // Variáveis do calendário
+    var hoy = new Date();
+    var y1 = hoy.getFullYear();
+    var m1 = hoy.getMonth() + 1;
+    var d1 = hoy.getDate();
+    var fecha_hoy = d1 + "." + m1 + "." + y1;
+    var es_domingo_to = false;
+    var ciclos = ["A", "B", "C"];
+    var tiposanio = ["II", "I"];
+    var tiposanio2 = ["par", "impar"];
+    var tipoanio2 = "";
+    var tiposanio3 = ["annosecundo", "annoprimo"];
+    var mitipoanio3 = "";
+    var idiomas = ["latin", "cast", "engl", "germ", "ital", "port", "fran"];
+    var mimisal_1 = idiomas[mipreferencia["misal_pral"]];
+    var mimisal_2 = idiomas[mipreferencia["segundoidioma"]];
+    var santos_aux = "";
+    var estoymac = window.localStorage.getItem("estoymac");
+
+    // Inicialização preventiva para evitar ReferenceError
+    var miciclo = dime_pref("ciclo", "A");
+
+    // Arrays para enlaces
+    var mienlace_santo = [];
+    var mienlace_lecturas = [];
+    var mienlace_misa = [];
+    var mienlace_texto = [];
+
+    // Quando tudo estiver carregado, processa o dia litúrgico
+    $.when(buscafecha, llegueaqui).then(function () {
+        respuesta = dia_liturgico(hoy_global);
+        document.getElementById("pintar_aqui").innerHTML = respuesta;
+        pintacuadro();
+
+        mienlace_santo = [];
+        mienlace_lecturas = [];
+        mienlace_misa = [];
+        mienlace_texto = [];
+    });
+    </script>
+</head>
+
+<body>
+    <!-- ============================================ -->
+    <!-- NOVA INTERFACE CLEAN ESTILO MINIMALISTA -->
+    <!-- ============================================ -->
+
+    <!-- Barra superior com ícones -->
+    <header class="appbar">
+        <div class="appbar-actions">
+            <!-- Botão HOJE -->
+            <button id="btnToday" class="icon-btn" type="button" aria-label="Ir para hoje" title="Ir para hoje">
+                <span id="todayBadge" class="today-badge"></span>
+            </button>
+
+            <!-- Botão Configurações (3 pontos) -->
+            <button id="btnSettings" class="icon-btn" type="button" aria-label="Configurações" title="Configurações">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                    <path d="M12 7.5a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Zm0 6.3a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Zm0 6.3a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Container principal -->
+    <div class="container">
+
+        <!-- Card do Calendário -->
+        <div class="calendar-card">
+            <div class="calendar-header">
+                <div class="arrows" id="prevMonth">&laquo; &lsaquo;</div>
+                <h2 id="monthYearDisplay">DEZEMBRO 2025</h2>
+                <div class="arrows" id="nextMonth">&rsaquo; &raquo;</div>
+            </div>
+
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Dias da semana (fixos) -->
+                <div class="day-name">DOM</div>
+                <div class="day-name">SEG</div>
+                <div class="day-name">TER</div>
+                <div class="day-name">QUA</div>
+                <div class="day-name">QUI</div>
+                <div class="day-name">SEX</div>
+                <div class="day-name">SAB</div>
+
+                <!-- Os números dos dias serão gerados dinamicamente pelo JS -->
+            </div>
+        </div>
+
+        <!-- Informações Litúrgicas -->
+        <div class="info-section">
+            <form name="formulario" style="display: none;">
+                <input type="hidden" name="lect_elegida" value="0" />
+                <input type="hidden" name="misa_elegida" value="0" />
+                <input type="hidden" name="santo_elegido" value="0" />
+            </form>
+
+            <div id="cabecera" class="liturgy-info">
+                <div class="hodie-text">Hodie</div>
+                <span id="pintar_aqui"></span>
+                <script>
+                    llegueaqui.resolve();
+                </script>
+            </div>
+        </div>
+
+        <!-- Botão FIAT -->
+        <button id="btnFiat" class="fiat-btn" type="button">FIAT</button>
+
+    </div>
+
+    <!-- Backdrop para sheet de configurações -->
+    <div id="backdrop" class="backdrop" hidden></div>
+
+    <!-- Sheet de configurações -->
+    <aside id="settingsSheet" class="sheet" hidden aria-label="Configurações">
+        <div class="sheet-head">
+            <div class="sheet-title">Configurações</div>
+            <button id="btnCloseSheet" class="icon-btn-close" type="button" aria-label="Fechar">✕</button>
+        </div>
+        <div class="sheet-body">
+            <div class="settings-option" ontouchend="window.location='preferencias.html';">
+                <span>⚙️ Preferências completas</span>
+            </div>
+            <div class="settings-option" ontouchend="window.location='devocionario.html#devotionarium';">
+                <span>📿 Devotionarium</span>
+            </div>
+            <div class="settings-option" ontouchend="window.location='devocionario.html#sacerdotale';">
+                <span>✝️ Sacerdotale</span>
+            </div>
+            <div class="settings-option" ontouchend="window.location='igmr/igmr_'+dime_pref('id_igmr','cast')+'.html';">
+                <span>📖 IGMR</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Buffers escondidos (mantidos para compatibilidade) -->
+    <div id="mibuffer1" style="display: none"></div>
+    <div id="mibuffer2" style="display: none"></div>
+    <div id="mibuffer3" style="display: none"></div>
+    <div id="mibuffer4" style="display: none"></div>
+    <div id="mibuffer5" style="display: none"></div>
+    <div id="mibuffer6" style="display: none"></div>
+    <div id="mi_estr" style="display: none"></div>
+    <div id="mi_idiom1" style="display: none"></div>
+    <div id="mi_idiom2" style="display: none"></div>
+
+    <!-- Script de integração da nova interface -->
+    <script src="home_clean.js"></script>
+</body>
+</html>

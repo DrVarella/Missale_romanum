@@ -1,0 +1,492 @@
+/* ============================================ */
+/* HOME CLEAN - INTERFACE MINIMALISTA */
+/* Inspirado no design iOS/macOS clean */
+/* ============================================ */
+
+/* Reset básico e Fontes */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #fff;
+    color: #4a4a4a;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================ */
+/* BARRA SUPERIOR (APPBAR) */
+/* ============================================ */
+
+.appbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: flex-end;
+    padding: calc(10px + env(safe-area-inset-top)) 12px 10px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.appbar-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Botões de ícone */
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.2s ease;
+}
+
+.icon-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0.02);
+}
+
+.icon-btn svg {
+    fill: #8e8e93;
+}
+
+/* Badge do dia de hoje */
+.today-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #d1d5db;
+    color: #4b5563;
+    font-weight: 700;
+    font-size: 13px;
+    background: #fff;
+}
+
+/* ============================================ */
+/* CONTAINER PRINCIPAL */
+/* ============================================ */
+
+.container {
+    flex: 1;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ============================================ */
+/* CALENDÁRIO */
+/* ============================================ */
+
+/* Estilo do Widget de Calendário */
+.calendar-card {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* Cabeçalho do Calendário (Mês e Setas) */
+.calendar-header {
+    background-color: #f3f4f6;
+    padding: 15px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.calendar-header h2 {
+    font-size: 1.1rem;
+    color: #8e8e93;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.arrows {
+    color: #c4c4c4;
+    font-size: 1.2rem;
+    cursor: pointer;
+    letter-spacing: 5px;
+    font-weight: bold;
+    user-select: none;
+    touch-action: manipulation;
+    transition: color 0.2s ease;
+}
+
+.arrows:hover {
+    color: #8e8e93;
+}
+
+.arrows:active {
+    color: #6b7280;
+}
+
+/* Grid dos Dias */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 15px;
+    row-gap: 15px;
+}
+
+.day-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #9ca3af;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.day-number {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #8e8e93;
+    padding: 8px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+    transition: color 0.2s ease;
+}
+
+.day-number:hover {
+    color: #4b5563;
+}
+
+/* Dias desabilitados (outros meses) */
+.day-number.disabled {
+    color: #d1d5db;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* Dia selecionado (caixa cinza claro) */
+.day-box {
+    background-color: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #4b5563;
+}
+
+/* Dia atual (com destaque) */
+.current-day {
+    color: #4b5563;
+    font-weight: 700;
+}
+
+/* Utilitário para dias vazios no grid */
+.empty {
+    height: 10px;
+}
+
+/* ============================================ */
+/* INFORMAÇÕES LITÚRGICAS */
+/* ============================================ */
+
+.info-section {
+    width: 100%;
+    margin-bottom: 40px;
+    line-height: 1.5;
+}
+
+.liturgy-info {
+    margin-bottom: 20px;
+}
+
+.hodie-text {
+    font-size: 1.1rem;
+    color: #000;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.latin-subtext {
+    font-size: 1.1rem;
+    color: #000;
+    margin-bottom: 20px;
+}
+
+.liturgy-text {
+    font-size: 1.1rem;
+    color: #000;
+}
+
+/* Estilos para o conteúdo gerado pelo dia_liturgico */
+#pintar_aqui {
+    display: block;
+}
+
+#pintar_aqui > div,
+#pintar_aqui br + span,
+#pintar_aqui span {
+    margin: 5px 0;
+    font-size: 1.1rem;
+    color: #000;
+}
+
+/* Destaque para textos em vermelho (classes do misal original) */
+#pintar_aqui .red,
+#pintar_aqui span.red {
+    color: #dc2626 !important;
+}
+
+/* ============================================ */
+/* BOTÃO FIAT */
+/* ============================================ */
+
+.fiat-btn {
+    background-color: #757575;
+    color: white;
+    border: none;
+    padding: 12px 60px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s, transform 0.1s;
+    touch-action: manipulation;
+}
+
+.fiat-btn:hover {
+    background-color: #5e5e5e;
+}
+
+.fiat-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.fiat-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ============================================ */
+/* SHEET DE CONFIGURAÇÕES */
+/* ============================================ */
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.45);
+    z-index: 50;
+    transition: opacity 0.2s ease;
+}
+
+.sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #fff;
+    border-radius: 18px 18px 0 0;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 -20px 40px rgba(17, 24, 39, 0.18);
+    z-index: 60;
+    padding: 10px 12px 18px;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+    transition: transform 0.3s ease;
+}
+
+.sheet[hidden] {
+    transform: translateY(100%);
+}
+
+.sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 2px 10px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 12px;
+}
+
+.sheet-title {
+    font-weight: 700;
+    font-size: 18px;
+    color: #000;
+}
+
+.icon-btn-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    color: #6b7280;
+    touch-action: manipulation;
+}
+
+.icon-btn-close:active {
+    transform: scale(0.95);
+}
+
+.sheet-body {
+    color: #6b7280;
+}
+
+.sheet-hint {
+    margin: 8px 4px;
+    font-size: 14px;
+}
+
+.settings-option {
+    padding: 14px 8px;
+    border-bottom: 1px solid #e5e7eb;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    font-size: 15px;
+    color: #000;
+    touch-action: manipulation;
+    text-align: left;
+}
+
+.settings-option:active {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.settings-option:last-child {
+    border-bottom: none;
+}
+
+/* ============================================ */
+/* ESCONDE ELEMENTOS DA INTERFACE ANTIGA */
+/* ============================================ */
+
+#header,
+#piedepantalla,
+#menu_diamante,
+#icono-gear {
+    display: none !important;
+}
+
+/* ============================================ */
+/* RESPONSIVIDADE */
+/* ============================================ */
+
+@media (max-width: 480px) {
+    .container {
+        padding: 15px;
+    }
+
+    .calendar-card {
+        margin-bottom: 25px;
+    }
+
+    .fiat-btn {
+        padding: 10px 50px;
+        font-size: 1.1rem;
+    }
+
+    .hodie-text,
+    .latin-subtext,
+    .liturgy-text {
+        font-size: 1rem;
+    }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .container {
+        max-width: 450px;
+    }
+}
+
+/* ============================================ */
+/* ANIMAÇÕES SUAVES */
+/* ============================================ */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.calendar-card,
+.info-section {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Animação ao selecionar dia */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.95);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.day-number:active {
+    animation: pulse 0.2s ease;
+}
+
+/* ============================================ */
+/* UTILITÁRIOS */
+/* ============================================ */
+
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}

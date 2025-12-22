@@ -6073,6 +6073,8 @@ mipreferencia['margen_inferior']=dime_pref("margen_inferior_defecto", 0)
       var tipoanio2 = ""
       var tiposanio3 = ["annosecundo", "annoprimo"]
       var mitipoanio3 = ""
+      // Inicialização preventiva para evitar ReferenceError
+      var miciclo = dime_pref("ciclo", "A")
       var idiomas = ["latin", "cast", "engl", "germ", "ital", "port","fran"]
       var mimisal_1 = idiomas[mipreferencia["misal_pral"]]
       var mimisal_2 = idiomas[mipreferencia["segundoidioma"]]
