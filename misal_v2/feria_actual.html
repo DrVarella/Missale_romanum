@@ -6085,17 +6085,340 @@ mipreferencia['margen_inferior']=dime_pref("margen_inferior_defecto", 0)
         mipreferencia["tamanotexto"]
       )
     </script>
-    <link
-      rel="stylesheet"
-      type="text/css"
-      media="all"
-      href="jscalendar/calendar-brown.css"
-      title="win2k-cold-1" />
-    <script type="text/javascript" src="jscalendar/calendar.js"></script>
-    <script
-      type="text/javascript"
-      src="jscalendar/lang/calendar-lat.js"></script>
-    <script type="text/javascript" src="jscalendar/calendar-setup.js"></script>
+    <!-- CSS Minimalista Clean -->
+    <style>
+        /* Esconde scrollbar */
+        ::-webkit-scrollbar { display: none; }
+        html, body { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Reset e estilo base */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #fff;
+            color: #4a4a4a;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Esconde elementos antigos */
+        #header .navbar,
+        #piedepantalla,
+        #menu_diamante {
+            display: none !important;
+        }
+
+        /* Header simplificado */
+        #header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb;
+            padding: calc(10px + env(safe-area-inset-top)) 12px 10px;
+        }
+
+        #header h1 {
+            display: none;
+        }
+
+        /* Barra superior com botões */
+        .appbar-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            display: grid;
+            place-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:active {
+            transform: translateY(1px);
+        }
+
+        .icon-btn svg {
+            fill: #8e8e93;
+        }
+
+        .today-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            border: 1px solid #d1d5db;
+            color: #4b5563;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        /* Container principal */
+        #contenedor {
+            flex: 1;
+            position: relative;
+            top: 0;
+            bottom: 0;
+            overflow: visible;
+        }
+
+        #scroller {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Calendário */
+        .calendar-card {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .calendar-header {
+            background-color: #f3f4f6;
+            padding: 15px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .calendar-header h2 {
+            font-size: 1.1rem;
+            color: #8e8e93;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .arrows {
+            color: #c4c4c4;
+            font-size: 1.2rem;
+            cursor: pointer;
+            letter-spacing: 5px;
+            font-weight: bold;
+            user-select: none;
+            touch-action: manipulation;
+            transition: color 0.2s ease;
+        }
+
+        .arrows:hover { color: #8e8e93; }
+        .arrows:active { color: #6b7280; }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            padding: 15px;
+            row-gap: 15px;
+        }
+
+        .day-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #9ca3af;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .day-number {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #8e8e93;
+            padding: 8px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            touch-action: manipulation;
+            transition: color 0.2s ease;
+        }
+
+        .day-number:hover { color: #4b5563; }
+        .day-number.disabled { color: #d1d5db; cursor: default; pointer-events: none; }
+
+        .day-box {
+            background-color: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #4b5563;
+        }
+
+        .current-day {
+            color: #4b5563;
+            font-weight: 700;
+        }
+
+        .empty { height: 10px; }
+
+        /* Esconde calendário antigo */
+        .calendario#calendar-container,
+        #calendar-container {
+            display: none !important;
+        }
+
+        /* Informações litúrgicas */
+        .info-section {
+            width: 100%;
+            margin-bottom: 40px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        #cabecera {
+            margin-bottom: 20px;
+        }
+
+        #cabecera .hodie-text,
+        #cabecera > div:first-child {
+            font-size: 1.1rem;
+            color: #000;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        #pintar_aqui,
+        #pintar_aqui > div,
+        #pintar_aqui span {
+            margin: 5px 0;
+            font-size: 1.1rem;
+            color: #000;
+        }
+
+        #pintar_aqui .red,
+        #pintar_aqui span.red {
+            color: #dc2626 !important;
+        }
+
+        /* Botão FIAT */
+        .fiat-btn {
+            background-color: #757575;
+            color: white;
+            border: none;
+            padding: 12px 60px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.2s, transform 0.1s;
+            touch-action: manipulation;
+        }
+
+        .fiat-btn:hover { background-color: #5e5e5e; }
+        .fiat-btn:active { transform: translateY(1px); }
+        .fiat-btn:disabled { opacity: 0.4; }
+
+        /* Esconde imagem FIAT antiga */
+        #boton_fiat img {
+            display: none;
+        }
+
+        /* Sheet de configurações */
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.45);
+            z-index: 50;
+        }
+
+        .sheet {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #fff;
+            border-radius: 18px 18px 0 0;
+            border: 1px solid #d1d5db;
+            box-shadow: 0 -20px 40px rgba(17, 24, 39, 0.18);
+            z-index: 60;
+            padding: 10px 12px calc(18px + env(safe-area-inset-bottom));
+        }
+
+        .sheet-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 2px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 12px;
+        }
+
+        .sheet-title { font-weight: 700; font-size: 18px; }
+
+        .icon-btn-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            font-size: 20px;
+            color: #6b7280;
+        }
+
+        .settings-option {
+            padding: 14px 8px;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            font-size: 15px;
+            text-align: left;
+        }
+
+        .settings-option:active { background: rgba(0, 0, 0, 0.02); }
+        .settings-option:last-child { border-bottom: none; }
+
+        /* Ícone gear movido */
+        #icono-gear {
+            position: absolute;
+            top: calc(10px + env(safe-area-inset-top));
+            right: 62px;
+            z-index: 15;
+        }
+
+        /* Responsividade */
+        @media (max-width: 480px) {
+            #scroller { padding: 15px; }
+            .fiat-btn { padding: 10px 50px; font-size: 1.1rem; }
+        }
+    </style>
   </head>
   <!-- Los estilos se proyectarán a nuestra aplicacion -->
   <body
@@ -6123,9 +6446,20 @@ mipreferencia['margen_inferior']=dime_pref("margen_inferior_defecto", 0)
               class="pestana">MR</a></li>
         </ul>
       </div>
+      <!-- Nova barra de ações clean -->
+      <div class="appbar-actions">
+        <button id="btnToday" class="icon-btn" type="button" title="Ir para hoje">
+          <span id="todayBadge" class="today-badge"></span>
+        </button>
+        <button id="btnSettings" class="icon-btn" type="button" title="Configurações">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path d="M12 7.5a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Zm0 6.3a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Zm0 6.3a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
-        <div id="icono-gear">
+        <div id="icono-gear" style="display: none;">
             <img id=ic-gear src="../gear.png" alt="Icono"
                 style="height: 1em;"
                 ontouchend="window.location='preferencias.html'; return false;" />
@@ -6133,77 +6467,50 @@ mipreferencia['margen_inferior']=dime_pref("margen_inferior_defecto", 0)
     <div id=contenedor>
       <div id=scroller>
 
-        <div class="calendario" style="width: 100%; z-index: 100">
-          <div
-            id="calendar-container"
-            style="
-              width: 10%;
-              margin: 0px auto;
-              width: auto;
-              text-align: center;
-              float: none;
-            ">
-            <script language="javascript" type="text/javascript">
-              function dateChanged(calendar) {
-                // Beware that this function is called even if the end-user only
-                // changed the month/year.  In order to determine if a date was
-                // clicked you can use the dateClicked property of the calendar:
-                if (calendar.dateClicked) {
-                  // OK, a date was clicked, redirect to /yyyy/mm/dd/index.php
-                  var y = calendar.date.getFullYear()
-                  var m = calendar.date.getMonth() + 1 // integer, 0..11
-                  var d = calendar.date.getDate() // integer, 1..31
-                  // redirect...
-                  //window.location = "aa_calendario.php?fecha="+ d + "." + m + "." + y ;
-                  //    if (m<10) m='0'+m;
-                  //    if (d<10) d='0'+d;
-                  //document.tareas.fecha.value= d + "." + m + "." + y ;
+        <!-- Calendário antigo (mantido escondido para compatibilidade) -->
+        <div class="calendario" style="display: none;">
+          <div id="calendar-container"></div>
+        </div>
 
-                  document.getElementById("cabecera").innerHTML = dia_liturgico(
-                    d + "." + m + "." + y
-                  )
+        <!-- Novo calendário minimalista -->
+        <div class="calendar-card">
+          <div class="calendar-header">
+            <div class="arrows" id="prevMonth">&laquo; &lsaquo;</div>
+            <h2 id="monthYearDisplay">DEZEMBRO 2025</h2>
+            <div class="arrows" id="nextMonth">&rsaquo; &raquo;</div>
+          </div>
+          <div class="calendar-grid" id="calendarGrid">
+            <div class="day-name">DOM</div>
+            <div class="day-name">SEG</div>
+            <div class="day-name">TER</div>
+            <div class="day-name">QUA</div>
+            <div class="day-name">QUI</div>
+            <div class="day-name">SEX</div>
+            <div class="day-name">SAB</div>
+            <!-- Dias serão gerados pelo JavaScript -->
+          </div>
+        </div>
 
-                  pintacuadro()
-                }
-
-                mienlace_santo = Array()
-                mienlace_lecturas = Array()
-                mienlace_misa = Array()
-                mienlace_texto = Array()
-              }
-
-              Calendar.setup({
-                flat: "calendar-container", // ID of the parent element
-                flatCallback: dateChanged, // our callback function
-                weekNumbers: false,
-                firstDay: 0,
-              })
+        <div class="info-section">
+          <form name="formulario" style="display: none;">
+            <input type="hidden" name="lect_elegida" value="0" />
+            <input type="hidden" name="misa_elegida" value="0" />
+            <input type="hidden" name="santo_elegido" value="0" />
+            <div id="cuadro"></div>
+          </form>
+          <div id="cabecera">
+            <div class="hodie-text">Hodie</div>
+            <span id="pintar_aqui"> </span>
+            <script>
+              llegueaqui.resolve()
             </script>
           </div>
         </div>
 
-        <form name="formulario">
-          <input type="hidden" name="lect_elegida" value="0" />
-          <input type="hidden" name="misa_elegida" value="0" />
-          <input type="hidden" name="santo_elegido" value="0" />
-          <div id="cuadro"></div>
-        </form>
-        <div
-          id="cabecera"
-          class="calendario"
-          style="margin-bottom: 1.5em;">
-          <div
-            style="margin-left: auto; margin-right: auto; font-weight: bold;">Hodie</div>
-          <span id="pintar_aqui"> </span>
-          <script>
-            llegueaqui.resolve()
-          </script>
-        </div>
-        <div style="text-align: center; margin-bottom: 5em;">
-          <a id="boton_fiat" data-url="ejecuta_fiat()" onclick="ejecutarCodigo(this)">
-            <img style="width: 50%; max-width: 15em; display: block; margin: 0 auto;" src="../fiat.png" />
-          </a>
-        </div>
+        <button id="boton_fiat" class="fiat-btn" type="button">
+          FIAT
+          <img style="width: 50%; max-width: 15em; display: block; margin: 0 auto;" src="../fiat.png" />
+        </button>
 
         <div id="mibuffer1" style="display: none"></div>
         <div id="mibuffer2" style="display: none"></div>
@@ -6266,7 +6573,254 @@ mipreferencia['margen_inferior']=dime_pref("margen_inferior_defecto", 0)
     <div id="mi_estr" style="display: none"></div>
     <div id="mi_idiom1" style="display: none"></div>
     <div id="mi_idiom2" style="display: none"></div>
+
+    <!-- Backdrop e Sheet de Configurações -->
+    <div id="backdrop" class="backdrop" hidden></div>
+    <aside id="settingsSheet" class="sheet" hidden>
+      <div class="sheet-head">
+        <div class="sheet-title">Configurações</div>
+        <button id="btnCloseSheet" class="icon-btn-close" type="button">✕</button>
+      </div>
+      <div class="sheet-body">
+        <div class="settings-option" ontouchend="window.location='preferencias.html';">
+          <span>⚙️ Preferências completas</span>
+        </div>
+        <div class="settings-option" ontouchend="window.location='devocionario.html#devotionarium';">
+          <span>📿 Devotionarium</span>
+        </div>
+        <div class="settings-option" ontouchend="window.location='devocionario.html#sacerdotale';">
+          <span>✝️ Sacerdotale</span>
+        </div>
+        <div class="settings-option" ontouchend="window.location='igmr/igmr_'+dime_pref('id_igmr','cast')+'.html';">
+          <span>📖 IGMR</span>
+        </div>
+      </div>
+    </aside>
   </body>
+  <script>
+    // ============================================
+    // CALENDÁRIO CUSTOMIZADO MINIMALISTA
+    // ============================================
+    (function() {
+      'use strict';
+
+      let currentMonth = new Date().getMonth();
+      let currentYear = new Date().getFullYear();
+      let selectedDate = new Date();
+
+      const monthNames = [
+        'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO',
+        'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'
+      ];
+
+      function init() {
+        setupTodayBadge();
+        renderCalendar(currentMonth, currentYear);
+        setupEventListeners();
+        loadInitialDate();
+      }
+
+      function setupTodayBadge() {
+        const todayNum = new Date().getDate();
+        const badge = document.getElementById('todayBadge');
+        if (badge) badge.textContent = String(todayNum);
+      }
+
+      function renderCalendar(month, year) {
+        const grid = document.getElementById('calendarGrid');
+        if (!grid) return;
+
+        const display = document.getElementById('monthYearDisplay');
+        if (display) display.textContent = monthNames[month] + ' ' + year;
+
+        const dayNumbers = grid.querySelectorAll('.day-number, .empty');
+        dayNumbers.forEach(el => el.remove());
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const today = new Date();
+        const isCurrentMonth = (month === today.getMonth() && year === today.getFullYear());
+
+        for (let i = 0; i < firstDay; i++) {
+          const empty = document.createElement('div');
+          empty.className = 'empty';
+          grid.appendChild(empty);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const cell = document.createElement('div');
+          cell.className = 'day-number';
+
+          const isToday = (isCurrentMonth && day === today.getDate());
+          const isSelected = (
+            day === selectedDate.getDate() &&
+            month === selectedDate.getMonth() &&
+            year === selectedDate.getFullYear()
+          );
+
+          if (isToday) cell.classList.add('current-day');
+
+          if (isSelected) {
+            const box = document.createElement('div');
+            box.className = 'day-box';
+            box.textContent = day;
+            cell.appendChild(box);
+          } else {
+            cell.textContent = day;
+          }
+
+          cell.addEventListener('click', () => handleDayClick(day, month, year));
+          cell.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleDayClick(day, month, year);
+          });
+
+          grid.appendChild(cell);
+        }
+      }
+
+      function handleDayClick(day, month, year) {
+        selectedDate = new Date(year, month, day);
+        renderCalendar(month, year);
+
+        const dateStr = day + '.' + (month + 1) + '.' + year;
+
+        if (typeof window.dia_liturgico === 'function') {
+          try {
+            const resp = window.dia_liturgico(dateStr);
+            const cab = document.getElementById('cabecera');
+            if (cab) {
+              const hodie = cab.querySelector('.hodie-text');
+              cab.innerHTML = '';
+              if (hodie) {
+                cab.appendChild(hodie);
+              } else {
+                const h = document.createElement('div');
+                h.className = 'hodie-text';
+                h.textContent = 'Hodie';
+                cab.appendChild(h);
+              }
+              const span = document.createElement('span');
+              span.id = 'pintar_aqui';
+              span.innerHTML = resp;
+              cab.appendChild(span);
+            }
+
+            if (typeof window.pintacuadro === 'function') window.pintacuadro();
+
+            window.mienlace_santo = [];
+            window.mienlace_lecturas = [];
+            window.mienlace_misa = [];
+            window.mienlace_texto = [];
+          } catch (err) {
+            console.error('Erro ao carregar dia litúrgico:', err);
+          }
+        }
+      }
+
+      function loadInitialDate() {
+        const now = new Date();
+        handleDayClick(now.getDate(), now.getMonth(), now.getFullYear());
+      }
+
+      function previousMonth() {
+        currentMonth--;
+        if (currentMonth < 0) {
+          currentMonth = 11;
+          currentYear--;
+        }
+        renderCalendar(currentMonth, currentYear);
+      }
+
+      function nextMonth() {
+        currentMonth++;
+        if (currentMonth > 11) {
+          currentMonth = 0;
+          currentYear++;
+        }
+        renderCalendar(currentMonth, currentYear);
+      }
+
+      function setupEventListeners() {
+        const prev = document.getElementById('prevMonth');
+        const next = document.getElementById('nextMonth');
+
+        if (prev) {
+          prev.addEventListener('click', previousMonth);
+          prev.addEventListener('touchend', (e) => { e.preventDefault(); previousMonth(); });
+        }
+
+        if (next) {
+          next.addEventListener('click', nextMonth);
+          next.addEventListener('touchend', (e) => { e.preventDefault(); nextMonth(); });
+        }
+
+        const backdrop = document.getElementById('backdrop');
+        const sheet = document.getElementById('settingsSheet');
+        const closeBtn = document.getElementById('btnCloseSheet');
+
+        function openSheet() {
+          if (backdrop) backdrop.hidden = false;
+          if (sheet) sheet.hidden = false;
+        }
+
+        function closeSheet() {
+          if (backdrop) backdrop.hidden = true;
+          if (sheet) sheet.hidden = true;
+        }
+
+        if (closeBtn) {
+          closeBtn.addEventListener('click', closeSheet);
+          closeBtn.addEventListener('touchend', (e) => { e.preventDefault(); closeSheet(); });
+        }
+
+        if (backdrop) {
+          backdrop.addEventListener('click', closeSheet);
+          backdrop.addEventListener('touchend', (e) => { e.preventDefault(); closeSheet(); });
+        }
+
+        const btnSettings = document.getElementById('btnSettings');
+        if (btnSettings) {
+          btnSettings.addEventListener('click', openSheet);
+          btnSettings.addEventListener('touchend', (e) => { e.preventDefault(); openSheet(); });
+        }
+
+        const btnToday = document.getElementById('btnToday');
+        if (btnToday) {
+          const goToday = () => {
+            const now = new Date();
+            currentMonth = now.getMonth();
+            currentYear = now.getFullYear();
+            renderCalendar(currentMonth, currentYear);
+            handleDayClick(now.getDate(), now.getMonth(), now.getFullYear());
+          };
+          btnToday.addEventListener('click', goToday);
+          btnToday.addEventListener('touchend', (e) => { e.preventDefault(); goToday(); });
+        }
+
+        const btnFiat = document.getElementById('boton_fiat');
+        if (btnFiat) {
+          btnFiat.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (typeof window.ejecuta_fiat === 'function') {
+              window.ejecuta_fiat();
+            }
+          });
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+      window.addEventListener('unhandledrejection', function(e) {
+        console.error('Unhandled promise:', e.reason);
+        e.preventDefault();
+      });
+    })();
+  </script>
   <script>
     if (estoymac != 1) {
       estoymac = false
