@@ -427,14 +427,19 @@
                     <!-- Container para conteúdo litúrgico -->
                     <div id="cabecera">
                         <div class="hodie-text">Hodie</div>
-                        <div id="pintar_aqui">
+                        <span id="pintar_aqui">
                             <!-- Conteúdo litúrgico será injetado aqui -->
-                        </div>
+                        </span>
+                        <script>
+                            if (typeof llegueaqui !== 'undefined' && llegueaqui.resolve) {
+                                llegueaqui.resolve();
+                            }
+                        </script>
                     </div>
                 </section>
 
                 <!-- Ação Principal -->
-                <button id="boton_fiat" class="btn-primary">
+                <button id="boton_fiat" class="btn-primary" type="button">
                     FIAT
                 </button>
 
@@ -642,44 +647,41 @@
         }
 
         // Compatibilidade com Cordova
-        function onDeviceReady() {
+        function onDeviceReady_UI() {
             if (window.plugins && window.plugins.insomnia) {
                 window.plugins.insomnia.keepAwake();
             }
             document.addEventListener("backbutton", function() { navigator.app.exitApp(); }, true);
         }
 
-        // Adiciona listener ao botão FIAT
+        // Adiciona listener ao botão FIAT (click + touch, com proteção contra duplo disparo)
         document.addEventListener('DOMContentLoaded', () => {
             const fiatBtn = document.getElementById('boton_fiat');
-            if (fiatBtn) {
-                fiatBtn.addEventListener('click', function() {
-                    // Sincroniza o valor do Select ID 'misanto' se ele existir
-                    const selectSanto = document.getElementById('misanto');
-                    if (selectSanto && document.formulario) {
-                        document.formulario.santo_elegido.value = selectSanto.value;
+            if (!fiatBtn) return;
+
+            let lock = false;
+            const run = (ev) => {
+                try {
+                    if (ev) {
+                        ev.preventDefault();
+                        ev.stopPropagation();
                     }
+                } catch (_) {}
+                if (lock) return;
+                lock = true;
+                setTimeout(() => { lock = false; }, 350);
 
-                    // Animação visual
-                    this.style.opacity = '0.7';
-                    this.textContent = 'Carregando...';
+                if (typeof window.ejecuta_fiat === 'function') {
+                    window.ejecuta_fiat();
+                } else {
+                    console.error('ejecuta_fiat() não está disponível.');
+                }
+            };
 
-                    // Chama função original com pequeno delay para feedback visual
-                    setTimeout(() => {
-                        if (typeof window.prepara_misal === 'function' && document.formulario) {
-                            window.prepara_misal(
-                                document.formulario.misa_elegida.value,
-                                document.formulario.lect_elegida.value,
-                                document.formulario.santo_elegido.value
-                            );
-                        } else if (typeof window.ejecuta_fiat === 'function') {
-                            window.ejecuta_fiat();
-                        }
-                        this.style.opacity = '1';
-                        this.textContent = 'FIAT';
-                    }, 50);
-                });
-            }
+            // iOS / touch-first
+            fiatBtn.addEventListener('touchend', run, { passive: false });
+            // fallback
+            fiatBtn.addEventListener('click', run);
         });
     </script>
 </body>
