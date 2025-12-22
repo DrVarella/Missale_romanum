@@ -6299,6 +6299,17 @@ mipreferencia['margen_inferior']=dime_pref("margen_inferior_defecto", 0)
             text-align: center;
         }
 
+        /* Caixa de seleção (quando há múltiplas opções) */
+        #cuadro {
+            width: 100%;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        #cuadro:empty {
+            display: none;
+        }
+
         #cabecera {
             margin-bottom: 20px;
         }
@@ -6499,13 +6510,16 @@ mipreferencia['margen_inferior']=dime_pref("margen_inferior_defecto", 0)
           </div>
         </div>
 
+        <form name="formulario" style="display: none;">
+          <input type="hidden" name="lect_elegida" value="0" />
+          <input type="hidden" name="misa_elegida" value="0" />
+          <input type="hidden" name="santo_elegido" value="0" />
+        </form>
+
         <div class="info-section">
-          <form name="formulario" style="display: none;">
-            <input type="hidden" name="lect_elegida" value="0" />
-            <input type="hidden" name="misa_elegida" value="0" />
-            <input type="hidden" name="santo_elegido" value="0" />
-            <div id="cuadro"></div>
-          </form>
+          <!-- Caixa de seleção quando há múltiplas opções -->
+          <div id="cuadro"></div>
+
           <div id="cabecera">
             <div class="hodie-text">Hodie</div>
             <span id="pintar_aqui"> </span>
