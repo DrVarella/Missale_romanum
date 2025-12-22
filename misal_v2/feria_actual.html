@@ -6357,6 +6357,10 @@ mipreferencia['margen_inferior']=dime_pref("margen_inferior_defecto", 0)
             z-index: 50;
         }
 
+        .backdrop[hidden] {
+            display: none;
+        }
+
         .sheet {
             position: fixed;
             left: 0;
@@ -6368,6 +6372,10 @@ mipreferencia['margen_inferior']=dime_pref("margen_inferior_defecto", 0)
             box-shadow: 0 -20px 40px rgba(17, 24, 39, 0.18);
             z-index: 60;
             padding: 10px 12px calc(18px + env(safe-area-inset-bottom));
+        }
+
+        .sheet[hidden] {
+            display: none;
         }
 
         .sheet-head {
