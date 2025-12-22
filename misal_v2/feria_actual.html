@@ -427,14 +427,9 @@
                     <!-- Container para conteúdo litúrgico -->
                     <div id="cabecera">
                         <div class="hodie-text">Hodie</div>
-                        <span id="pintar_aqui">
+                        <div id="pintar_aqui">
                             <!-- Conteúdo litúrgico será injetado aqui -->
-                        </span>
-                        <script>
-                            if (typeof llegueaqui !== 'undefined' && llegueaqui.resolve) {
-                                llegueaqui.resolve();
-                            }
-                        </script>
+                        </div>
                     </div>
                 </section>
 
@@ -659,9 +654,30 @@
             const fiatBtn = document.getElementById('boton_fiat');
             if (fiatBtn) {
                 fiatBtn.addEventListener('click', function() {
-                    if (typeof window.ejecuta_fiat === 'function') {
-                        window.ejecuta_fiat();
+                    // Sincroniza o valor do Select ID 'misanto' se ele existir
+                    const selectSanto = document.getElementById('misanto');
+                    if (selectSanto && document.formulario) {
+                        document.formulario.santo_elegido.value = selectSanto.value;
                     }
+
+                    // Animação visual
+                    this.style.opacity = '0.7';
+                    this.textContent = 'Carregando...';
+
+                    // Chama função original com pequeno delay para feedback visual
+                    setTimeout(() => {
+                        if (typeof window.prepara_misal === 'function' && document.formulario) {
+                            window.prepara_misal(
+                                document.formulario.misa_elegida.value,
+                                document.formulario.lect_elegida.value,
+                                document.formulario.santo_elegido.value
+                            );
+                        } else if (typeof window.ejecuta_fiat === 'function') {
+                            window.ejecuta_fiat();
+                        }
+                        this.style.opacity = '1';
+                        this.textContent = 'FIAT';
+                    }, 50);
                 });
             }
         });
