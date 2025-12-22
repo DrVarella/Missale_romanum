@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text.html;" charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Missale Romanum</title>
+
+    <!-- Scripts originais do misal -->
+    <link rel="stylesheet" href="misal.css" type="text/css" />
+    <script type="text/javascript" charset="utf-8" src="../jquery.js"></script>
+    <script type="text/javascript" charset="utf-8" src="../cordova_loader.js"></script>
+    <script type="text/javascript" charset="utf-8" src="mis_funciones_devoc.js"></script>
+    <script src="mis_funciones_misal.js"></script>
+
+    <style>
+        :root {
+            /* Shadcn Zinc Color Palette Configuration */
+            --background: 0 0% 100%;
+            --foreground: 240 10% 3.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 240 10% 3.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 240 10% 3.9%;
+            --primary: 240 5.9% 10%;
+            --primary-foreground: 0 0% 98%;
+            --secondary: 240 4.8% 95.9%;
+            --secondary-foreground: 240 5.9% 10%;
+            --muted: 240 4.8% 95.9%;
+            --muted-foreground: 240 3.8% 46.1%;
+            --accent: 240 4.8% 95.9%;
+            --accent-foreground: 240 5.9% 10%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 240 5.9% 90%;
+            --input: 240 5.9% 90%;
+            --ring: 240 5.9% 10%;
+            --radius: 0.5rem;
+
+            --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        /* Reset & Base */
+        * { box-sizing: border-box; }
+        ::-webkit-scrollbar { display: none; }
+
+        body {
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            font-family: var(--font-sans);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul, ol { list-style: none; padding: 0; margin: 0; }
+
+        /* --- Header Moderno --- */
+        #header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid hsl(var(--border));
+            padding-top: env(safe-area-inset-top);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 3.5rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        #header h1 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: hsl(var(--foreground));
+            margin: 0;
+            display: none;
+        }
+
+        .navbar { display: none !important; }
+
+        /* Navbar Icons (Header Actions) */
+        .appbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            justify-content: flex-end;
+        }
+
+        .icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: var(--radius);
+            color: hsl(var(--foreground));
+            background: transparent;
+            border: 1px solid transparent;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .icon-btn:hover {
+            background-color: hsl(var(--accent));
+            color: hsl(var(--accent-foreground));
+        }
+
+        .icon-btn svg { width: 1.25rem; height: 1.25rem; }
+
+        .today-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid hsl(var(--border));
+            width: 2rem;
+            height: 2rem;
+            border-radius: var(--radius);
+            display: grid;
+            place-items: center;
+        }
+
+        /* --- Conteúdo Principal --- */
+        #contenedor {
+            flex: 1;
+            position: relative;
+            overflow-y: auto;
+            width: 100%;
+        }
+
+        #scroller {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem 6rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* --- Componente: Calendário (Shadcn Style) --- */
+        .calendar-card {
+            background-color: hsl(var(--card));
+            color: hsl(var(--card-foreground));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            padding: 1rem;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-header h2 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .arrows {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: var(--radius);
+            border: 1px solid hsl(var(--input));
+            background: transparent;
+            font-size: 1.2rem;
+            line-height: 1;
+            cursor: pointer;
+            color: hsl(var(--foreground));
+        }
+        .arrows:hover { background-color: hsl(var(--accent)); }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.25rem;
+            text-align: center;
+        }
+
+        .day-name {
+            font-size: 0.7rem;
+            font-weight: 400;
+            color: hsl(var(--muted-foreground));
+            text-transform: uppercase;
+            padding-bottom: 0.5rem;
+        }
+
+        .day-number {
+            font-size: 0.875rem;
+            height: 2.25rem;
+            width: 2.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius);
+            cursor: pointer;
+            margin: 0 auto;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .day-number:hover {
+            background-color: hsl(var(--accent));
+            color: hsl(var(--accent-foreground));
+        }
+
+        /* Dia Selecionado */
+        .day-box {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius);
+            font-weight: 500;
+        }
+
+        .current-day {
+            font-weight: 700;
+            color: hsl(var(--foreground));
+        }
+        .current-day::after {
+            content: '';
+            position: absolute;
+            margin-top: 1.5rem;
+            width: 4px;
+            height: 4px;
+            background-color: hsl(var(--primary));
+            border-radius: 50%;
+        }
+
+        /* --- Selects e Dropdowns (Substituindo estilo nativo) --- */
+        #cuadro {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        #cuadro:empty {
+            display: none;
+        }
+
+        .select-wrapper {
+            position: relative;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        #cuadro select,
+        .select-wrapper select {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 100%;
+            height: 2.5rem;
+            padding: 0.5rem 2rem 0.5rem 0.75rem;
+            background-color: hsl(var(--background));
+            border: 1px solid hsl(var(--input));
+            border-radius: var(--radius);
+            color: hsl(var(--foreground));
+            font-size: 0.875rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        #cuadro select:focus,
+        .select-wrapper select:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 1px hsl(var(--ring));
+        }
+
+        /* Custom Arrow for Select */
+        #cuadro select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 12px;
+        }
+
+        /* Label para selects */
+        #cuadro #rotulo,
+        #rotulo {
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: hsl(var(--foreground));
+            font-size: 0.875rem;
+            display: block;
+        }
+
+        /* --- Informações Litúrgicas --- */
+        #cabecera {
+            text-align: center;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background-color: hsl(var(--secondary));
+            border-radius: var(--radius);
+        }
+
+        .hodie-text {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: hsl(var(--muted-foreground));
+            margin-bottom: 0.5rem;
+        }
+
+        #pintar_aqui {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: hsl(var(--foreground));
+        }
+
+        #pintar_aqui div,
+        #pintar_aqui span {
+            margin: 0.25rem 0;
+        }
+
+        /* Tratamento das cores vermelhas litúrgicas */
+        .red {
+            color: hsl(var(--destructive)) !important;
+            font-weight: 500;
+        }
+
+        /* --- Botão FIAT --- */
+        .fiat-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 3rem;
+            border-radius: var(--radius);
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .fiat-btn:hover { opacity: 0.9; }
+        .fiat-btn:active { transform: scale(0.99); }
+        .fiat-btn img { display: none; }
+
+        /* --- Navbar Inferior --- */
+        #piedepantalla {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: hsl(var(--background));
+            border-top: 1px solid hsl(var(--border));
+            padding: 0.5rem 1rem calc(0.5rem + env(safe-area-inset-bottom));
+            display: flex;
+            justify-content: space-around;
+            z-index: 50;
+        }
+
+        #menupie {
+            display: flex;
+            width: 100%;
+            justify-content: space-around;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        #menupie li {
+            padding: 0.5rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+        }
+
+        #menupie li:active { background-color: hsl(var(--accent)); }
+
+        #menupie img {
+            height: 1.5rem !important;
+            filter: grayscale(100%) opacity(0.7);
+        }
+
+        /* --- Settings Sheet / Modal --- */
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 60;
+            backdrop-filter: blur(4px);
+        }
+
+        .backdrop[hidden] {
+            display: none;
+        }
+
+        .sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: hsl(var(--background));
+            border-top: 1px solid hsl(var(--border));
+            border-radius: 1rem 1rem 0 0;
+            padding: 1.5rem;
+            padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+            z-index: 70;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .sheet[hidden] {
+            display: none;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .sheet-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .sheet-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .settings-option {
+            padding: 1rem 0;
+            border-bottom: 1px solid hsl(var(--border));
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .settings-option:last-child { border-bottom: none; }
+        .settings-option:active { background-color: hsl(var(--accent)); }
+
+        /* Utilitários de visibilidade */
+        [hidden] { display: none !important; }
+
+        /* Legacy overrides */
+        #icono-gear,
+        #menu_diamante {
+            display: none !important;
+        }
+
+        /* Esconde calendário antigo */
+        .calendario {
+            display: none !important;
+        }
+    </style>
+
+    <!-- Script de inicialização das variáveis globais (do feria_actual original) -->
+    <script>
+        // Inicialização das variáveis globais do misal
+        window.miciclo = window.miciclo ?? "";
+        window.tipoanio2 = window.tipoanio2 ?? "";
+
+        var mipreferencia = {};
+        mipreferencia['idioma'] = dime_pref("idioma_defecto", 0);
+        mipreferencia['misal_pral'] = dime_pref("misal_pral_defecto", 0);
+        mipreferencia['segundoidioma'] = dime_pref("segundoidioma_defecto", 1);
+        mipreferencia['presentaciontexto'] = dime_pref("presentaciontexto_defecto", 2);
+        mipreferencia['presentacionrespuestas'] = dime_pref("presentacionrespuestas_defecto", 5);
+        mipreferencia['fondo'] = dime_pref("fondo_defecto", 1);
+        mipreferencia['tipoletra'] = dime_pref("tipoletra_defecto", 1);
+        mipreferencia['tamanotexto'] = dime_pref("tamanotexto_defecto", 12);
+        mipreferencia['tamanorubrica'] = dime_pref("tamanorubrica_defecto", 90);
+        mipreferencia['tamanomenus'] = dime_pref("tamanomenus_defecto", 10);
+        mipreferencia['oracionestodos'] = dime_pref("oracionestodos_defecto", 0);
+        mipreferencia['presentacionpestanas'] = dime_pref("presentacionpestanas_defecto", 0);
+        mipreferencia['presentacionbotones'] = dime_pref("presentacionbotones_defecto", 0);
+        mipreferencia['botoneszurdos'] = dime_pref("botoneszurdos_defecto", 0);
+        mipreferencia['ordinarionormal'] = dime_pref("ordinarionormal_defecto", 0);
+        mipreferencia['avance'] = dime_pref("avance_defecto", 100);
+        mipreferencia['margen_superior'] = dime_pref("margen_superior_defecto", 0);
+        mipreferencia['margen_inferior'] = dime_pref("margen_inferior_defecto", 0);
+
+        var tamano_actual = dime_pref("tamano_calend", mipreferencia["tamanotexto"]);
+        var lengua = "latin";
+        var hoy_global = "";
+        var buscafecha = $.Deferred();
+        var llegueaqui = $.Deferred();
+
+        var hoy = new Date();
+        var y1 = hoy.getFullYear();
+        var m1 = hoy.getMonth() + 1;
+        var d1 = hoy.getDate();
+        var fecha_hoy = d1 + "." + m1 + "." + y1;
+        var es_domingo_to = false;
+        var ciclos = ["A", "B", "C"];
+        var tiposanio = ["II", "I"];
+        var tiposanio2 = ["par", "impar"];
+        var tipoanio2 = "";
+        var tiposanio3 = ["annosecundo", "annoprimo"];
+        var mitipoanio3 = "";
+        var idiomas = ["latin", "cast", "engl", "germ", "ital", "port", "fran"];
+        var mimisal_1 = idiomas[mipreferencia["misal_pral"]];
+        var mimisal_2 = idiomas[mipreferencia["segundoidioma"]];
+        var santos_aux = "";
+        var estoymac = window.localStorage.getItem("estoymac");
+
+        var miciclo = dime_pref("ciclo", "A");
+
+        var mienlace_santo = [];
+        var mienlace_lecturas = [];
+        var mienlace_misa = [];
+        var mienlace_texto = [];
+
+        $.when(buscafecha, llegueaqui).then(function () {
+            respuesta = dia_liturgico(hoy_global);
+            document.getElementById("pintar_aqui").innerHTML = respuesta;
+            pintacuadro();
+
+            mienlace_santo = [];
+            mienlace_lecturas = [];
+            mienlace_misa = [];
+            mienlace_texto = [];
+        });
+    </script>
+</head>
+
+<body onload="document.addEventListener('deviceready', onDeviceReady, false);">
+
+    <div id="header">
+        <h1>Missale Romanum</h1>
+
+        <div class="navbar">
+            <ul>
+                <li><a data-url="window.location='feria_actual.html';" onclick="ejecutarCodigo(this)" class="pestana active" id=tab_ind></a></li>
+                <li><a data-url="window.location='devocionario.html#devotionarium'" onclick="ejecutarCodigo(this)" class="pestana" id=tab_dev></a></li>
+                <li><a data-url="window.location='devocionario.html#sacerdotale'" onclick="ejecutarCodigo(this)" class="pestana" id=tab_sac></a></li>
+                <li><a data-url="window.location='igmr/igmr_'+dime_pref('id_igmr','cast')+'.html'" onclick="ejecutarCodigo(this)" class="pestana" id=tab_igmr></a></li>
+                <li><a id='boton_MR' class="pestana"></a></li>
+            </ul>
+        </div>
+
+        <div class="appbar-actions">
+            <button id="btnToday" class="icon-btn" type="button" aria-label="Hoje">
+                <div id="todayBadge" class="today-badge"></div>
+            </button>
+            <button id="btnSettings" class="icon-btn" type="button" aria-label="Configurações">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="contenedor">
+        <div id="scroller">
+
+            <div class="calendar-card">
+                <div class="calendar-header">
+                    <button class="arrows" id="prevMonth" type="button">
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.84182 3.13514C9.04327 3.32401 9.05348 3.64042 8.86462 3.84188L5.43521 7.49991L8.86462 11.1579C9.05348 11.3594 9.04327 11.6758 8.84182 11.8647C8.64036 12.0535 8.32394 12.0433 8.13508 11.8419L4.38508 7.84188C4.20477 7.64955 4.20477 7.35027 4.38508 7.15794L8.13508 3.15794C8.32394 2.95648 8.64036 2.94628 8.84182 3.13514Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <h2 id="monthYearDisplay"></h2>
+                    <button class="arrows" id="nextMonth" type="button">
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.1584 3.13508C6.35985 2.94621 6.67627 2.95642 6.86514 3.15788L10.6151 7.15788C10.7954 7.3502 10.7954 7.64949 10.6151 7.84182L6.86514 11.8418C6.67627 12.0433 6.35985 12.0535 6.1584 11.8646C5.95694 11.6757 5.94673 11.3593 6.1356 11.1579L9.565 7.49985L6.1356 3.84182C5.94673 3.64036 5.95694 3.32394 6.1584 3.13508Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                    </button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+
+            <form name="formulario" style="display: none;">
+                <input type="hidden" name="lect_elegida" value="0" />
+                <input type="hidden" name="misa_elegida" value="0" />
+                <input type="hidden" name="santo_elegido" value="0" />
+            </form>
+
+            <div id="cuadro"></div>
+
+            <div id="cabecera">
+                <div class="hodie-text">Hodie</div>
+                <span id="pintar_aqui"></span>
+                <script>
+                    llegueaqui.resolve();
+                </script>
+            </div>
+
+            <button id="boton_fiat" class="fiat-btn" type="button">
+                FIAT
+            </button>
+
+            <div id="mibuffer1" style="display: none"></div>
+            <div id="mibuffer2" style="display: none"></div>
+            <div id="mibuffer3" style="display: none"></div>
+            <div id="mibuffer4" style="display: none"></div>
+            <div id="mibuffer5" style="display: none"></div>
+            <div id="mibuffer6" style="display: none"></div>
+            <div id="mi_estr" style="display: none"></div>
+            <div id="mi_idiom1" style="display: none"></div>
+            <div id="mi_idiom2" style="display: none"></div>
+        </div>
+    </div>
+
+    <div id="piedepantalla">
+        <ol id="menupie">
+            <li ontouchend="botonPantArriba();" onclick="botonPantArriba();">
+                <img id="bot_arriba" src="../angle-double-up2.png" alt="Topo">
+            </li>
+            <li ontouchend="window.location='ayuda.html';" onclick="window.location='ayuda.html';">
+                <img id="bot_indice" src="../asterisk2.png" alt="Ajuda">
+            </li>
+            <li ontouchend="botonPantAbajo();" onclick="botonPantAbajo();">
+                <img id="bot_abajo" src="../angle-double-down2.png" alt="Fim">
+            </li>
+        </ol>
+    </div>
+
+    <div id="backdrop" class="backdrop" hidden></div>
+    <aside id="settingsSheet" class="sheet" hidden>
+        <div class="sheet-head">
+            <div class="sheet-title">Menu</div>
+            <button id="btnCloseSheet" class="icon-btn" type="button" style="border:none;">✕</button>
+        </div>
+        <div class="sheet-body">
+            <div class="settings-option" onclick="window.location='preferencias.html';">
+                <span>⚙️ Preferências</span>
+            </div>
+            <div class="settings-option" onclick="window.location='devocionario.html#devotionarium';">
+                <span>📿 Devotionarium</span>
+            </div>
+            <div class="settings-option" onclick="window.location='devocionario.html#sacerdotale';">
+                <span>✝️ Sacerdotale</span>
+            </div>
+            <div class="settings-option" onclick="window.location='igmr/igmr_'+dime_pref('id_igmr','cast')+'.html';">
+                <span>📖 IGMR</span>
+            </div>
+        </div>
+    </aside>
+
+    <script>
+    (function() {
+      'use strict';
+      let currentMonth = new Date().getMonth();
+      let currentYear = new Date().getFullYear();
+      let selectedDate = new Date();
+      const monthNames = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
+
+      function init() {
+        setupTodayBadge();
+        renderCalendar(currentMonth, currentYear);
+        setupEventListeners();
+        loadInitialDate();
+      }
+
+      function setupTodayBadge() {
+        const todayNum = new Date().getDate();
+        const badge = document.getElementById('todayBadge');
+        if (badge) badge.textContent = String(todayNum);
+      }
+
+      function renderCalendar(month, year) {
+        const grid = document.getElementById('calendarGrid');
+        if (!grid) return;
+        const display = document.getElementById('monthYearDisplay');
+        if (display) display.textContent = monthNames[month] + ' ' + year;
+
+        grid.innerHTML = '';
+
+        const days = ['DOM','SEG','TER','QUA','QUI','SEX','SAB'];
+        days.forEach(d => {
+            const el = document.createElement('div');
+            el.className = 'day-name';
+            el.textContent = d;
+            grid.appendChild(el);
+        });
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const today = new Date();
+        const isCurrentMonth = (month === today.getMonth() && year === today.getFullYear());
+
+        for (let i = 0; i < firstDay; i++) {
+          const empty = document.createElement('div');
+          grid.appendChild(empty);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const cell = document.createElement('div');
+          cell.className = 'day-number';
+
+          const isToday = (isCurrentMonth && day === today.getDate());
+          const isSelected = (day === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear());
+
+          if (isToday) cell.classList.add('current-day');
+
+          if (isSelected) {
+            const box = document.createElement('div');
+            box.className = 'day-box';
+            box.textContent = day;
+            cell.appendChild(box);
+          } else {
+            cell.textContent = day;
+          }
+
+          const clickHandler = (e) => {
+              if(e) e.preventDefault();
+              handleDayClick(day, month, year);
+          };
+
+          cell.onclick = clickHandler;
+          cell.ontouchend = clickHandler;
+
+          grid.appendChild(cell);
+        }
+      }
+
+      function handleDayClick(day, month, year) {
+        selectedDate = new Date(year, month, day);
+        renderCalendar(month, year);
+        const dateStr = day + '.' + (month + 1) + '.' + year;
+
+        if (typeof window.dia_liturgico === 'function') {
+          try {
+            const cab = document.getElementById('cabecera');
+            const pintar = document.getElementById('pintar_aqui');
+            if(pintar) pintar.innerHTML = window.dia_liturgico(dateStr);
+
+            if (typeof window.pintacuadro === 'function') window.pintacuadro();
+
+            window.mienlace_santo = [];
+            window.mienlace_lecturas = [];
+            window.mienlace_misa = [];
+            window.mienlace_texto = [];
+          } catch (err) {
+            console.error('Erro ao carregar dia litúrgico:', err);
+          }
+        }
+      }
+
+      function loadInitialDate() {
+        const now = new Date();
+        handleDayClick(now.getDate(), now.getMonth(), now.getFullYear());
+      }
+
+      function previousMonth() {
+        currentMonth--;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        renderCalendar(currentMonth, currentYear);
+      }
+
+      function nextMonth() {
+        currentMonth++;
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        renderCalendar(currentMonth, currentYear);
+      }
+
+      function setupEventListeners() {
+        document.getElementById('prevMonth')?.addEventListener('click', previousMonth);
+        document.getElementById('nextMonth')?.addEventListener('click', nextMonth);
+
+        const backdrop = document.getElementById('backdrop');
+        const sheet = document.getElementById('settingsSheet');
+        const btnSettings = document.getElementById('btnSettings');
+        const btnClose = document.getElementById('btnCloseSheet');
+
+        const openSheet = () => { backdrop.hidden = false; sheet.hidden = false; };
+        const closeSheet = () => { backdrop.hidden = true; sheet.hidden = true; };
+
+        btnSettings?.addEventListener('click', openSheet);
+        btnClose?.addEventListener('click', closeSheet);
+        backdrop?.addEventListener('click', closeSheet);
+
+        document.getElementById('btnToday')?.addEventListener('click', () => {
+             const now = new Date();
+             currentMonth = now.getMonth();
+             currentYear = now.getFullYear();
+             renderCalendar(currentMonth, currentYear);
+             handleDayClick(now.getDate(), now.getMonth(), now.getFullYear());
+        });
+
+        const btnFiat = document.getElementById('boton_fiat');
+        if (btnFiat) {
+          btnFiat.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (typeof window.ejecuta_fiat === 'function') {
+              window.ejecuta_fiat();
+            }
+          });
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+      window.addEventListener('unhandledrejection', function(e) {
+        console.error('Unhandled promise:', e.reason);
+        e.preventDefault();
+      });
+    })();
+
+    // Funções Legado
+    function ejecuta_fiat() {
+      $("#boton_fiat").css("opacity", ".4");
+      if ($("#misanto").length > 0)
+        document.formulario.santo_elegido.value = $("#misanto").val();
+
+      if(typeof prepara_misal === 'function') {
+          prepara_misal(
+            document.formulario.misa_elegida.value,
+            document.formulario.lect_elegida.value,
+            document.formulario.santo_elegido.value
+          );
+      }
+    }
+
+    function botonPantArriba() {
+      const scroller = document.getElementById('contenedor');
+      if (scroller) scroller.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function botonPantAbajo() {
+      const scroller = document.getElementById('contenedor');
+      if (scroller) scroller.scrollTo({ top: scroller.scrollHeight, behavior: 'smooth' });
+    }
+
+    if (estoymac != 1) {
+      estoymac = false;
+      $(".solo_android").css("display", "block");
+      $(".solo_mac").css("display", "none");
+    } else {
+      estoymac = true;
+      $(".solo_android").css("display", "none");
+      $(".solo_mac").css("display", "block");
+    }
+    </script>
+</body>
+</html>
