@@ -1,4 +1,4 @@
-﻿/* __MISAL_WEB_SHIM__ - ES5 Compatible Version for Kindle */
+/* __MISAL_WEB_SHIM__ - ES5 Compatible Version for Kindle */
 (function () {
   try {
     if (typeof window === 'undefined') return;
