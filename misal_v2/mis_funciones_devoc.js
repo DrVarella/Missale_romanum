@@ -894,24 +894,26 @@ function loadedAsync() {
 
     toggle_pestanas(0);
 
-    myScroll = new iScroll("contenedor", {
-      hScrollbar: false,
-      vScrollbar: false,
-      fixedScrollbar: false,
-      hScroll: false,
-      bounce: false,
-      hideScrollbar: true,
-      fadeScrollbar: true,
-      momentum: true,
-      useTransform: false,
-      onBeforeScrollStart: function(e) {
-        var target = e.target;
-        while (target.nodeType != 1) target = target.parentNode;
-        if (target.tagName != "SELECT" && target.tagName != "INPUT" && target.tagName != "TEXTAREA" && target.tagName != "OPTION") {
-          e.preventDefault();
-        }
-      },
-      onBeforeScrollMove: function(e) {
+    // Verificar si iScroll está disponible antes de usarlo
+    if (typeof iScroll !== 'undefined') {
+      myScroll = new iScroll("contenedor", {
+        hScrollbar: false,
+        vScrollbar: false,
+        fixedScrollbar: false,
+        hScroll: false,
+        bounce: false,
+        hideScrollbar: true,
+        fadeScrollbar: true,
+        momentum: true,
+        useTransform: false,
+        onBeforeScrollStart: function(e) {
+          var target = e.target;
+          while (target.nodeType != 1) target = target.parentNode;
+          if (target.tagName != "SELECT" && target.tagName != "INPUT" && target.tagName != "TEXTAREA" && target.tagName != "OPTION") {
+            e.preventDefault();
+          }
+        },
+        onBeforeScrollMove: function(e) {
         myScroll.refresh();
         if (parseInt(dime_pref('pasarpagina_defecto', 1)) === 1) {
           var headerBottom = document.getElementById("cabecera").getBoundingClientRect().bottom;
@@ -943,10 +945,13 @@ function loadedAsync() {
         return false;
       }
     });
+    } else {
+      console.warn('⚠️ iScroll no está disponible - scrolling nativo será usado');
+    }
 
     console.log('Estoy en 6');
     document.addEventListener("deviceready", onDeviceReady2, false);
-    
+
     var headerBottom = document.getElementById("cabecera").getBoundingClientRect().bottom;
     var pieTop = document.getElementById("piedepantalla").getBoundingClientRect().top;
     var paginaAltura = pieTop - headerBottom;
@@ -966,21 +971,25 @@ function loadedAsync() {
     setTimeout(function() {
       esperame = false;
       console.log('Estoy en 7');
-      myScroll.refresh();
 
-      if (typeof parcial2 === "undefined") {
-        myScroll.scrollTo(0, -miposicion, 0, true);
-      } else {
-        if (parcial2 == "rito_comunion") {
-          muestraono("botonmas5", false);
-          muestraono("liturgia_eucaristica_3", true);
-          myScroll.scrollToElement(document.getElementById("rito_comunion"), 0);
-        } else if (parcial2 == "lit_euchar") {
-          muestraono("botonmas3", false);
-          muestraono("liturgia_eucaristica_1", true);
-          myScroll.scrollToElement(document.getElementById("lit_euchar"), 0);
-        } else {
+      // Solo usar myScroll si está definido
+      if (typeof myScroll !== 'undefined' && myScroll) {
+        myScroll.refresh();
+
+        if (typeof parcial2 === "undefined") {
           myScroll.scrollTo(0, -miposicion, 0, true);
+        } else {
+          if (parcial2 == "rito_comunion") {
+            muestraono("botonmas5", false);
+            muestraono("liturgia_eucaristica_3", true);
+            myScroll.scrollToElement(document.getElementById("rito_comunion"), 0);
+          } else if (parcial2 == "lit_euchar") {
+            muestraono("botonmas3", false);
+            muestraono("liturgia_eucaristica_1", true);
+            myScroll.scrollToElement(document.getElementById("lit_euchar"), 0);
+          } else {
+            myScroll.scrollTo(0, -miposicion, 0, true);
+          }
         }
       }
 

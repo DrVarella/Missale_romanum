@@ -308,23 +308,28 @@ function initGlobalErrorHandler() {
     return true;
   };
 
-  // Captura de errores en promesas
-  window.addEventListener('unhandledrejection', function (event) {
-    var reason = event.reason || {};
-    var message = reason.message || reason.toString() || 'Error desconocido';
-    var stack = reason.stack || 'No hay stack disponible';
+  // Captura de errores en promesas (solo si el navegador lo soporta)
+  if (window.addEventListener && 'onunhandledrejection' in window) {
+    window.addEventListener('unhandledrejection', function (event) {
+      var reason = event.reason || {};
+      var message = reason.message || reason.toString() || 'Error desconocido';
+      var stack = reason.stack || 'No hay stack disponible';
 
-    var fullMessage = [
-      '🚨 Error en promesa no manejada',
-      'SO: ' + osInfo,
-      'Dispositivo: ' + deviceInfo,
-      'Mensaje: ' + message,
-      'Stack:\n' + stack
-    ].join('\n');
+      var fullMessage = [
+        '🚨 Error en promesa no manejada',
+        'SO: ' + osInfo,
+        'Dispositivo: ' + deviceInfo,
+        'Mensaje: ' + message,
+        'Stack:\n' + stack
+      ].join('\n');
 
-    console.error(fullMessage);
-    alert(fullMessage);
-  });
+      console.error(fullMessage);
+      // Solo alertar si es un error crítico, no para dependencias faltantes comunes
+      if (message.indexOf('iScroll') === -1) {
+        alert(fullMessage);
+      }
+    });
+  }
 
   console.log('✅ Manejador de errores con info de SO y dispositivo inicializado');
 }
