@@ -221,8 +221,8 @@ td select {
 
     // Mostrar la primera página al cargar
     $('.page').hide(); // Ocultar todas las páginas
-$('#idioma_pref').val(dime_pref('id_pref','cast')); 
-$('#pref_'+dime_pref('id_pref','cast')).show();
+$('#idioma_pref').val(dime_pref('id_pref','port')); 
+$('#pref_'+dime_pref('id_pref','port')).show();
 
     // Configuración adicional: por ejemplo, botones o interacción dinámica
     $('.button-action').on('click', function () {
@@ -1635,9 +1635,9 @@ $('#titulo003').html(mipreferencia['tamanotexto'] + "&nbsp;&#9654;&#xFE0E;&nbsp;
 
 document.addEventListener('DOMContentLoaded', function() {
 	
-$('.misal_pral').val(dime_pref("misal_pral_defecto", 0))
-$('.segundoidioma').val(dime_pref("segundoidioma_defecto",1))
-$('.presentaciontexto').val(dime_pref("presentaciontexto_defecto",2))
+$('.misal_pral').val(dime_pref("misal_pral_defecto", 1))
+$('.segundoidioma').val(dime_pref("segundoidioma_defecto",0))
+$('.presentaciontexto').val(dime_pref("presentaciontexto_defecto",1))
 $('.presentacionrespuestas').val(dime_pref("presentacionrespuestas_defecto",5))
 $('.fondo').val(dime_pref("fondo_defecto", 1))
 $('.tipoletra').val(dime_pref("tipoletra_defecto", 1))
