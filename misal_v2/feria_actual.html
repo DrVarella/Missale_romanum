@@ -359,6 +359,76 @@
             font-weight: 600;
             margin-bottom: 0.5rem;
         }
+
+        /* =========================================
+           COMPATIBILIDADE (Kindle / WebKit antigo)
+           - sem CSS grid, sem flex-gap, sem aspect-ratio, sem 100dvh
+           ========================================= */
+        .app-shell { height: 100vh; }
+
+        /* Centralização sem display:grid */
+        .btn-icon {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+            -webkit-box-pack: center;
+            -webkit-justify-content: center;
+            justify-content: center;
+        }
+
+        /* Fallback para gap (flex) */
+        .header-actions { gap: 0; }
+        .header-actions > * { margin-left: 0.75rem; }
+        .header-actions > *:first-child { margin-left: 0; }
+
+        .content-container { gap: 0; }
+        .content-container > * { margin-top: 1.5rem; }
+        .content-container > *:first-child { margin-top: 0; }
+
+        .liturgy-info { gap: 0; }
+        .liturgy-info > * { margin-top: 0.5rem; }
+        .liturgy-info > *:first-child { margin-top: 0; }
+
+        /* Fallback do calendário sem grid */
+        .calendar-grid {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-flex-wrap: wrap;
+            flex-wrap: wrap;
+        }
+        .calendar-grid .weekday-label,
+        .calendar-grid .day-cell {
+            width: 14.2857%;
+        }
+
+        /* Fallback de altura (quando aspect-ratio não existe) */
+        .day-cell {
+            height: 2.4rem;
+            line-height: 2.4rem;
+        }
+
+        /* Se o browser suportar, volta para grid e aspect-ratio */
+        @supports (display: grid) {
+            .calendar-grid {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+            }
+            .calendar-grid .weekday-label,
+            .calendar-grid .day-cell {
+                width: auto;
+            }
+        }
+        @supports (aspect-ratio: 1 / 1) {
+            .day-cell {
+                height: auto;
+                line-height: normal;
+                aspect-ratio: 1.25;
+            }
+        }
     </style>
 </head>
 

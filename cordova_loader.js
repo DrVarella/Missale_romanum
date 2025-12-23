@@ -1,8 +1,17 @@
 (function () {
   // Resolve base path of this loader so it works from any subfolder.
-  var src = (document.currentScript && document.currentScript.src) || "";
+  // Kindle/old WebKit may not support document.currentScript.
+  var scripts = document.getElementsByTagName("script");
+  var thisScript = document.currentScript || (scripts && scripts.length ? scripts[scripts.length - 1] : null);
+  var src = (thisScript && thisScript.src) ? thisScript.src : "";
   var base = src ? src.slice(0, src.lastIndexOf("/") + 1) : "";
-  var isWeb = location.protocol === "http:" || location.protocol === "https:";
+
+  var proto = (location && location.protocol) ? location.protocol : "";
+  var ua = (navigator && navigator.userAgent) ? navigator.userAgent : "";
+  var isKindle = /Kindle|Silk/i.test(ua);
+
+  // For Kindle browser, treat file:// as web (no Cordova bridge available).
+  var isWeb = proto === "http:" || proto === "https:" || (proto === "file:" && isKindle);
 
   if (isWeb) {
     // Web (Vercel / localhost): do NOT load Cordova Android bridge.
