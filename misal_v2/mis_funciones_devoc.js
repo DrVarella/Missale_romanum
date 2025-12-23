@@ -302,6 +302,26 @@ function dime_pref(key, defecto) {
   return resultado;
 }
 
+// Função helper para calcular altura da página com segurança
+function calcularAlturaPagina() {
+  var headerElement = document.getElementById("cabecera");
+  var pieElement = document.getElementById("piedepantalla");
+
+  if (headerElement && pieElement) {
+    try {
+      var headerBottom = headerElement.getBoundingClientRect().bottom;
+      var pieTop = pieElement.getBoundingClientRect().top;
+      return pieTop - headerBottom;
+    } catch (e) {
+      console.warn('⚠️ Error calculando altura:', e);
+      return window.innerHeight || 600;
+    }
+  } else {
+    console.warn('⚠️ Elementos cabecera o piedepantalla no encontrados');
+    return window.innerHeight || 600;
+  }
+}
+
 function pon_pref(key, value) {
   window.localStorage.setItem(key, value);
 }
@@ -888,11 +908,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
 function loadedAsync() {
   console.log('Estoy en 3');
-  return new Promise(function(resolve) {
-    console.log('Estoy en 4');
-    var espera = 1;
+  return new Promise(function(resolve, reject) {
+    try {
+      console.log('Estoy en 4');
+      var espera = 1;
 
-    toggle_pestanas(0);
+      toggle_pestanas(0);
 
     // Verificar si iScroll está disponible antes de usarlo
     if (typeof iScroll !== 'undefined') {
@@ -916,9 +937,7 @@ function loadedAsync() {
         onBeforeScrollMove: function(e) {
         myScroll.refresh();
         if (parseInt(dime_pref('pasarpagina_defecto', 1)) === 1) {
-          var headerBottom = document.getElementById("cabecera").getBoundingClientRect().bottom;
-          var pieTop = document.getElementById("piedepantalla").getBoundingClientRect().top;
-          var paginaAltura = pieTop - headerBottom;
+          var paginaAltura = calcularAlturaPagina();
 
           if (this.distX > 40 && this.absDistX > this.absDistY) {
             myScroll.disable();
@@ -952,9 +971,7 @@ function loadedAsync() {
     console.log('Estoy en 6');
     document.addEventListener("deviceready", onDeviceReady2, false);
 
-    var headerBottom = document.getElementById("cabecera").getBoundingClientRect().bottom;
-    var pieTop = document.getElementById("piedepantalla").getBoundingClientRect().top;
-    var paginaAltura = pieTop - headerBottom;
+    var paginaAltura = calcularAlturaPagina();
 
     if (avancepantalla == 100) {
       avancepantalla = (avancepantalla * paginaAltura) / 100 - 10;
@@ -1003,6 +1020,12 @@ function loadedAsync() {
 
       resolve();
     }, espera);
+
+    } catch (error) {
+      console.error('❌ Error en loadedAsync:', error);
+      // Mesmo com erro, resolver a promise para não bloquear a aplicação
+      resolve();
+    }
   });
 }
 
@@ -1037,16 +1060,12 @@ function backKeyDown() {
 }
 
 function retrasa_pantalla() {
-  var headerBottom = document.getElementById("cabecera").getBoundingClientRect().bottom;
-  var pieTop = document.getElementById("piedepantalla").getBoundingClientRect().top;
-  var paginaAltura = pieTop - headerBottom;
+  var paginaAltura = calcularAlturaPagina();
   $("#contenedor").animate({ scrollTop: "-=" + (paginaAltura - 10) }, 200);
 }
 
 function avanza_pantalla() {
-  var headerBottom = document.getElementById("cabecera").getBoundingClientRect().bottom;
-  var pieTop = document.getElementById("piedepantalla").getBoundingClientRect().top;
-  var paginaAltura = pieTop - headerBottom;
+  var paginaAltura = calcularAlturaPagina();
   $("#contenedor").animate({ scrollTop: "+=" + (paginaAltura - 10) }, 200);
 }
 
