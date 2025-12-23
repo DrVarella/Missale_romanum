@@ -61,7 +61,8 @@
             margin: 0;
             padding: 0;
             overflow: hidden; /* App-like feel */
-            background-color: var(--background);
+            background-color: var(--background) !important;
+            background-image: none !important;
             color: var(--foreground);
             font-family: var(--font-sans);
             -webkit-font-smoothing: antialiased;
@@ -78,6 +79,8 @@
             flex-direction: column;
             height: 100dvh; /* Dynamic viewport height */
             position: relative;
+            background-color: var(--background) !important;
+            background-image: none !important;
         }
 
         /* Header Fixo */
