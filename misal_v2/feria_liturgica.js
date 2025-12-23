@@ -1,32 +1,251 @@
-      function calcularUsoLocalStorage() {
-  let total = 0;
-  for (let i = 0; i < localStorage.length; i++) {
-    const clave = localStorage.key(i);
-    const valor = localStorage.getItem(clave);
+// 1. Declarar variáveis globais que faltam
+var esDispositivoMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+var esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+            (navigator.userAgent.indexOf('Macintosh') !== -1 && 'ontouchstart' in document);
+
+// 2. Polyfill para String.prototype.endsWith (não existe em navegadores antigos)
+if (!String.prototype.endsWith) {
+    String.prototype.endsWith = function(search, this_len) {
+        if (this_len === undefined || this_len > this.length) {
+            this_len = this.length;
+        }
+        return this.substring(this_len - search.length, this_len) === search;
+    };
+}
+
+// 3. Polyfill para String.prototype.includes
+if (!String.prototype.includes) {
+    String.prototype.includes = function(search, start) {
+        if (typeof start !== 'number') {
+            start = 0;
+        }
+        if (start + search.length > this.length) {
+            return false;
+        }
+        return this.indexOf(search, start) !== -1;
+    };
+}
+
+// 4. Polyfill para Array.prototype.includes
+if (!Array.prototype.includes) {
+    Array.prototype.includes = function(search, start) {
+        if (typeof start !== 'number') {
+            start = 0;
+        }
+        if (start < 0) {
+            start = Math.max(0, this.length + start);
+        }
+        for (var i = start; i < this.length; i++) {
+            if (this[i] === search || (search !== search && this[i] !== this[i])) {
+                return true;
+            }
+        }
+        return false;
+    };
+}
+
+// 5. Polyfill para NodeList.prototype.forEach
+if (typeof NodeList !== 'undefined' && !NodeList.prototype.forEach) {
+    NodeList.prototype.forEach = function(callback, thisArg) {
+        thisArg = thisArg || window;
+        for (var i = 0; i < this.length; i++) {
+            callback.call(thisArg, this[i], i, this);
+        }
+    };
+}
+
+// 6. Polyfill para Array.prototype.find
+if (!Array.prototype.find) {
+    Array.prototype.find = function(predicate) {
+        if (this == null) {
+            throw new TypeError('Array.prototype.find called on null or undefined');
+        }
+        if (typeof predicate !== 'function') {
+            throw new TypeError('predicate must be a function');
+        }
+        var list = Object(this);
+        var length = list.length >>> 0;
+        var thisArg = arguments[1];
+        var value;
+
+        for (var i = 0; i < length; i++) {
+            value = list[i];
+            if (predicate.call(thisArg, value, i, list)) {
+                return value;
+            }
+        }
+        return undefined;
+    };
+}
+
+// 7. Polyfill para Object.keys (caso não exista)
+if (!Object.keys) {
+    Object.keys = function(obj) {
+        var keys = [];
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                keys.push(key);
+            }
+        }
+        return keys;
+    };
+}
+
+// 8. Polyfill básico para Promise (versão simplificada)
+if (typeof Promise === 'undefined') {
+    window.Promise = function(executor) {
+        var self = this;
+        self._state = 'pending';
+        self._value = undefined;
+        self._handlers = [];
+        
+        function resolve(value) {
+            if (self._state !== 'pending') return;
+            self._state = 'fulfilled';
+            self._value = value;
+            for (var i = 0; i < self._handlers.length; i++) {
+                self._handlers[i].onFulfilled(value);
+            }
+        }
+        
+        function reject(reason) {
+            if (self._state !== 'pending') return;
+            self._state = 'rejected';
+            self._value = reason;
+            for (var i = 0; i < self._handlers.length; i++) {
+                self._handlers[i].onRejected(reason);
+            }
+        }
+        
+        try {
+            executor(resolve, reject);
+        } catch (e) {
+            reject(e);
+        }
+    };
+    
+    Promise.prototype.then = function(onFulfilled, onRejected) {
+        var self = this;
+        return new Promise(function(resolve, reject) {
+            function handle(value) {
+                try {
+                    var result = onFulfilled ? onFulfilled(value) : value;
+                    if (result && typeof result.then === 'function') {
+                        result.then(resolve, reject);
+                    } else {
+                        resolve(result);
+                    }
+                } catch (e) {
+                    reject(e);
+                }
+            }
+            
+            function handleError(reason) {
+                try {
+                    if (onRejected) {
+                        var result = onRejected(reason);
+                        resolve(result);
+                    } else {
+                        reject(reason);
+                    }
+                } catch (e) {
+                    reject(e);
+                }
+            }
+            
+            if (self._state === 'fulfilled') {
+                setTimeout(function() { handle(self._value); }, 0);
+            } else if (self._state === 'rejected') {
+                setTimeout(function() { handleError(self._value); }, 0);
+            } else {
+                self._handlers.push({ onFulfilled: handle, onRejected: handleError });
+            }
+        });
+    };
+    
+    Promise.prototype['catch'] = function(onRejected) {
+        return this.then(null, onRejected);
+    };
+    
+    Promise.resolve = function(value) {
+        return new Promise(function(resolve) { resolve(value); });
+    };
+    
+    Promise.reject = function(reason) {
+        return new Promise(function(resolve, reject) { reject(reason); });
+    };
+    
+    Promise.all = function(promises) {
+        return new Promise(function(resolve, reject) {
+            var results = [];
+            var completed = 0;
+            var total = promises.length;
+            
+            if (total === 0) {
+                resolve(results);
+                return;
+            }
+            
+            for (var i = 0; i < total; i++) {
+                (function(index) {
+                    var p = promises[index];
+                    if (p && typeof p.then === 'function') {
+                        p.then(function(value) {
+                            results[index] = value;
+                            completed++;
+                            if (completed === total) resolve(results);
+                        }, reject);
+                    } else {
+                        results[index] = p;
+                        completed++;
+                        if (completed === total) resolve(results);
+                    }
+                })(i);
+            }
+        });
+    };
+}
+
+console.log("✅ Polyfills para Kindle carregados com sucesso");
+
+// =============================================================================
+// FIM DOS POLYFILLS - O código original começa abaixo
+// =============================================================================
+
+function calcularUsoLocalStorage() {
+  var total = 0;
+  for (var i = 0; i < localStorage.length; i++) {
+    var clave = localStorage.key(i);
+    var valor = localStorage.getItem(clave);
     total += ((clave.length + valor.length) * 2); // cada carácter ≈ 2 bytes
   }
   return total;
 }
 
 function limpiarLocalStorageInteligente() {
-  const claves_a_preservar = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const clave = localStorage.key(i);
+  var claves_a_preservar = [];
+  var i, clave;
+
+  for (i = 0; i < localStorage.length; i++) {
+    clave = localStorage.key(i);
     if (clave.endsWith('_defecto') || clave === 'misintenciones') {
       claves_a_preservar.push(clave);
     }
   }
 
-  const datos_preservados = {};
-  claves_a_preservar.forEach(clave => {
+  var datos_preservados = {};
+  for (i = 0; i < claves_a_preservar.length; i++) {
+    clave = claves_a_preservar[i];
     datos_preservados[clave] = localStorage.getItem(clave);
-  });
+  }
 
   localStorage.clear();
 
-  Object.keys(datos_preservados).forEach(clave => {
-    localStorage.setItem(clave, datos_preservados[clave]);
-  });
+  for (var key in datos_preservados) {
+    if (datos_preservados.hasOwnProperty(key)) {
+      localStorage.setItem(key, datos_preservados[key]);
+    }
+  }
 }
 
 function pon_pref(key, value) {
@@ -34,12 +253,12 @@ function pon_pref(key, value) {
     localStorage.setItem(key, value);
   } catch (e) {
     // Registro antes de limpiar
-    const uso_antes = calcularUsoLocalStorage();
+    var uso_antes = calcularUsoLocalStorage();
 
     // Limpieza
     limpiarLocalStorageInteligente();
 
-    const uso_despues = calcularUsoLocalStorage();
+    var uso_despues = calcularUsoLocalStorage();
 
     // Intentar de nuevo
     try {
@@ -57,53 +276,50 @@ function pon_pref(key, value) {
 }
 
 function initGlobalErrorHandler() {
-  let osInfo = 'SO desconocido';
-  let deviceInfo = 'Dispositivo desconocido';
+  var osInfo = 'SO desconocido';
+  var deviceInfo = 'Dispositivo desconocido';
 
   document.addEventListener('deviceready', function () {
     if (window.device) {
-      osInfo = `${device.platform} ${device.version}`;
-      deviceInfo = `${device.manufacturer} ${device.model}`;
+      osInfo = device.platform + ' ' + device.version;
+      deviceInfo = device.manufacturer + ' ' + device.model;
     } else {
       osInfo = 'SO no disponible';
       deviceInfo = 'Modelo no disponible';
     }
   });
 
-  // Captura de errores JS
-  window.addEventListener('error', function (event) {
-    const message = event.message || 'Error desconocido';
-    const source = event.filename || 'desconocido';
-    const lineno = event.lineno || 0;
-    const colno = event.colno || 0;
-    const stack = event.error?.stack || 'No hay stack disponible';
+  // Captura de errores JS - usando window.onerror para mayor compatibilidad
+  window.onerror = function(message, source, lineno, colno, error) {
+    var stack = (error && error.stack) ? error.stack : 'No hay stack disponible';
 
-    const fullMessage = [
+    var fullMessage = [
       '🛑 Error de JavaScript',
-      `SO: ${osInfo}`,
-      `Dispositivo: ${deviceInfo}`,
-      `Mensaje: ${message}`,
-      `Archivo: ${source}`,
-      `Línea: ${lineno}, Columna: ${colno}`,
-      `Stack:\n${stack}`
+      'SO: ' + osInfo,
+      'Dispositivo: ' + deviceInfo,
+      'Mensaje: ' + message,
+      'Archivo: ' + source,
+      'Línea: ' + lineno + ', Columna: ' + colno,
+      'Stack:\n' + stack
     ].join('\n');
 
     console.error(fullMessage);
     alert(fullMessage);
-  });
+    return true;
+  };
 
   // Captura de errores en promesas
   window.addEventListener('unhandledrejection', function (event) {
-    const reason = event.reason || {};
-    const message = reason.message || reason.toString() || 'Error desconocido';
-    const stack = reason.stack || 'No hay stack disponible';
+    var reason = event.reason || {};
+    var message = reason.message || reason.toString() || 'Error desconocido';
+    var stack = reason.stack || 'No hay stack disponible';
 
-    const fullMessage = [
+    var fullMessage = [
       '🚨 Error en promesa no manejada',
-      `SO: ${osInfo}`,
-      `Dispositivo: ${deviceInfo}`,
-      `Mensaje: ${message}`,
-      `Stack:\n${stack}`
+      'SO: ' + osInfo,
+      'Dispositivo: ' + deviceInfo,
+      'Mensaje: ' + message,
+      'Stack:\n' + stack
     ].join('\n');
 
     console.error(fullMessage);
@@ -117,8 +333,8 @@ function initGlobalErrorHandler() {
 initGlobalErrorHandler();
 
 function ejecutarCodigo(el) {
-    let codigo = el.getAttribute("data-url");
-    let funcion = new Function(codigo);
+    var codigo = el.getAttribute("data-url");
+    var funcion = new Function(codigo);
     funcion(); // Ejecuta el código almacenado en data-url
 }
       function DiferenciaFechas(CadenaFecha1, CadenaFecha2) {
@@ -4737,17 +4953,20 @@ function ejecutarCodigo(el) {
             "<br><B class=red>Commemorationes Calendarii</B><br>" + resultado
         return resultado
       }
-      var esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.userAgent.includes('Macintosh') && 'ontouchstart' in document);
+      var esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.userAgent.indexOf('Macintosh') !== -1 && 'ontouchstart' in document);
       function onDeviceReady() {
   // Register the event listener
   if (!esDispositivoMovil) {
-    var elementos = document.querySelectorAll("[ontouchend]")
-    elementos.forEach(function (elemento) {
-      var contenido = elemento.getAttribute("ontouchend")
-      elemento.removeAttribute("ontouchend")
-      elemento.setAttribute("onclick", contenido)
-    })
-  window.plugins.insomnia.keepAwake();
+    var elementos = document.querySelectorAll("[ontouchend]");
+    for (var i = 0; i < elementos.length; i++) {
+      var elemento = elementos[i];
+      var contenido = elemento.getAttribute("ontouchend");
+      elemento.removeAttribute("ontouchend");
+      elemento.setAttribute("onclick", contenido);
+    }
+    if (window.plugins && window.plugins.insomnia) {
+      window.plugins.insomnia.keepAwake();
+    }
   }
   document.addEventListener("backbutton", backKeyDown, true);
   if (esIOS) {
@@ -5009,70 +5228,70 @@ function ejecutarCodigo(el) {
 
       async function carga_pagina(origenURL) {
   await esperarCordova();
-  let misal_1 = mimisal_1;
-  let misal_2 = mimisal_2;
-  let partes = origenURL.split("/");
-  let miPath = partes.slice(0, -1).join("/");
-  let miArchivo = partes[partes.length - 1];
+  var misal_1 = mimisal_1;
+  var misal_2 = mimisal_2;
+  var partes = origenURL.split("/");
+  var miPath = partes.slice(0, -1).join("/");
+  var miArchivo = partes[partes.length - 1];
 
   if (misal_1==misal_2){
     if (misal_1=='cast') { misal_2='latin';} else misal_2='cast';
   }
-  let hash = origenURL.split("#")[1];
-  let idiomaUrl1 = origenURL.replace(/estructura/gi, misal_1);
-  let idiomaUrl2 = origenURL.replace(/estructura/gi, misal_2);
-  let estructuraData = document.createElement("div");
-  const idiomaData1 = document.createElement("div");
-  const idiomaData2 = document.createElement("div");
+  var hash = origenURL.split("#")[1];
+  var idiomaUrl1 = origenURL.replace(/estructura/gi, misal_1);
+  var idiomaUrl2 = origenURL.replace(/estructura/gi, misal_2);
+  var estructuraData = document.createElement("div");
+  var idiomaData1 = document.createElement("div");
+  var idiomaData2 = document.createElement("div");
 
         // Función auxiliar para manejar errores sin rechazar Promise.all()
-        const safeGet = (miurl, targetElement) => {
-              return new Promise((resolve) => {
-                const isIOS = window.cordova && cordova.platformId === "ios";
-                const isCordova = !!window.cordova;
-                const cleanUrl = miurl.split("#")[0];
-                const fallback = () => {
+        var safeGet = function(miurl, targetElement) {
+              return new Promise(function(resolve) {
+                var isIOS = window.cordova && cordova.platformId === "ios";
+                var isCordova = !!window.cordova;
+                var cleanUrl = miurl.split("#")[0];
+                var fallback = function() {
                   console.log("[safeGet] Fallback al navegador para", cleanUrl);
                   $.get(cleanUrl)
-                    .done(data => {
+                    .done(function(data) {
                       $(targetElement).html(data);
                       resolve(data);
                     })
-                    .fail(() => {
-                      console.warn(`[safeGet] No se encontró (fallback): ${cleanUrl}`);
+                    .fail(function() {
+                      console.warn("[safeGet] No se encontró (fallback): " + cleanUrl);
                       resolve(null);
                     });
                 };
             
                 // Solo usamos acceso directo a archivos en iOS Cordova
                 if (isIOS && window.cordova.file) {
-                  let fullUrl = cordova.file.applicationDirectory + "www/misal_v2/" + cleanUrl;
+                  var fullUrl = cordova.file.applicationDirectory + "www/misal_v2/" + cleanUrl;
                   console.log("[safeGet] Intentando leer desde iOS filesystem:", fullUrl);
-            
+
                   window.resolveLocalFileSystemURL(fullUrl, function (fileEntry) {
                     fileEntry.file(function (file) {
-                      let reader = new FileReader();
-                      let watchdog;
-            
+                      var reader = new FileReader();
+                      var watchdog;
+
                       reader.onloadend = function () {
                         clearTimeout(watchdog);
                         console.log("[safeGet] Archivo leído con éxito (iOS)");
                         targetElement.innerHTML = this.result;
                         resolve(this.result);
                       };
-            
+
                       reader.onerror = function () {
                         clearTimeout(watchdog);
                         console.error("[safeGet] Error leyendo archivo con FileReader");
                         resolve(null);
                       };
-            
+
                       // Watchdog por si no dispara ningún evento (iOS bug)
-                      watchdog = setTimeout(() => {
+                      watchdog = setTimeout(function() {
                         console.warn("[safeGet] FileReader timeout, resolviendo fallback");
                         resolve(null);
                       }, 3000);
-            
+
                       reader.readAsText(file);
                     }, function (error) {
                       console.error("[safeGet] Error accediendo al archivo (file):", JSON.stringify(error));
@@ -5082,7 +5301,7 @@ function ejecutarCodigo(el) {
                     console.warn("[safeGet] No se pudo acceder al archivo (entry):", JSON.stringify(error));
                     fallback();
                   });
-            
+
                 } else {
                   fallback();
                 }
@@ -5097,7 +5316,7 @@ function ejecutarCodigo(el) {
 
 
       // Crear promesas para cada archivo
-      let promesas = [
+      var promesas = [
           safeGet(origenURL, estructuraData),
           safeGet(idiomaUrl1, idiomaData1),
           safeGet(idiomaUrl2, idiomaData2)
@@ -5119,16 +5338,16 @@ function ejecutarCodigo(el) {
       $(estructuraData)
       .find(".padre")
       .each(function () {
-          let match = $(this).attr("class").match(/padre_([\w-]+)/);
+          var match = $(this).attr("class").match(/padre_([\w-]+)/);
           if (!match) return; // Salta si no encuentra clase padre_xxx
-          let numero = match[1];
-  
-          let hijoIdioma1 = $(idiomaData1).find(".hijo_" + numero);
+          var numero = match[1];
+
+          var hijoIdioma1 = $(idiomaData1).find(".hijo_" + numero);
           if (hijoIdioma1.length > 0) {
               $(this).append(hijoIdioma1);
           }
-  
-          let hijoIdioma2 = $(idiomaData2).find(".hijo_" + numero);
+
+          var hijoIdioma2 = $(idiomaData2).find(".hijo_" + numero);
           if (mimisal_1 !== mimisal_2 && hijoIdioma2.length > 0) {
               $(this).append(hijoIdioma2);
           }
@@ -5144,30 +5363,34 @@ function ejecutarCodigo(el) {
           await safeGet(origenURL, estructuraData);
       }
 console.log('antes error '+origenURL)
-let estructuraDom = $(estructuraData).get(0);
+var estructuraDom = $(estructuraData).get(0);
 if (estructuraDom) {
-  estructuraDom.querySelectorAll("*").forEach(el => {
-    let removed = false;
-    el.classList.forEach(clase => {
-      if (clase.startsWith("hijo_")) {
+  var elementos = estructuraDom.querySelectorAll("*");
+  for (var i = 0; i < elementos.length; i++) {
+    var el = elementos[i];
+    var removed = false;
+    var clases = Array.prototype.slice.call(el.classList);
+    for (var j = 0; j < clases.length; j++) {
+      var clase = clases[j];
+      if (clase.indexOf("hijo_") === 0) {
         el.classList.remove(clase);
         removed = true;
       }
-    });
+    }
     if (removed) {
       el.classList.remove("hijo");
     }
-  });
+  }
 } else {
   console.warn("estructuraData está vacío o no tiene elementos válidos:", origenURL);
 }
 
 console.log('despues error '+origenURL)
   // Agregar el fragmento al contenedor
-  
-  let $estructura = $(estructuraData).clone(); // No modificar el DOM original, si es necesario
+
+  var $estructura = $(estructuraData).clone(); // No modificar el DOM original, si es necesario
 reemplazarComentariosSoloEn($estructura);
-let resultado = $estructura.html(); // Contiene HTML procesado sin tocar el DOM completo
+var resultado = $estructura.html(); // Contiene HTML procesado sin tocar el DOM completo
 
       return resultado;
 
@@ -5227,7 +5450,7 @@ let resultado = $estructura.html(); // Contiene HTML procesado sin tocar el DOM 
           pon_pref("lhpf500", '')
           pon_pref("lhpe500", '')
           pon_pref("lhc500", '')
-          const promesas = []
+          var promesas = []
         miUrl = parseURL(window.location.href).path
         var r = /[^\/]*$/
         miUrl = miUrl.replace(r, "")
@@ -5369,19 +5592,19 @@ partespos2.forEach((p) => pon_pref("x_com_" + p, "nada"));
 
 puntero_t = dime_pref("lht_ultimo");
 if (puntero_t == 500) {
-  partespos2.forEach((p) => pon_pref("x_tmp_" + p, "nada"));
+  partespos2.forEach(function(p) { pon_pref("x_tmp_" + p, "nada"); });
 } else {
   $("#mibuffer1").html(dime_pref("lht" + puntero_t));
-  partespos2.forEach((p) => {
-    let elem = $("#mibuffer1 .x_" + p);
+  partespos2.forEach(function(p) {
+    var elem = $("#mibuffer1 .x_" + p);
     pon_pref("x_tmp_" + p, elem.length ? elem[0].outerHTML : "nada");
   });
 }
-let promesaCargaTO = $.Deferred();
+var promesaCargaTO = $.Deferred();
 if (es_domingo_to){
   carga_pagina(
                 "m_estructura/indices/m_estructura_indice_prefacios.html#extracto_domingos"
-              ).then((contenido) => {
+              ).then(function(contenido) {
                 $("#mibuffer6").html(contenido)
                 var midiv_pref = $("#mibuffer6 .x_prefacio").outerHTML()
                 pon_pref("x_tmp_prefacio", midiv_pref)
@@ -5391,11 +5614,11 @@ if (es_domingo_to){
 
 puntero_s = dime_pref("lhs_ultimo");
 if (puntero_s == 500) {
-  partespos2.forEach((p) => pon_pref("x_snt_" + p, "nada"));
+  partespos2.forEach(function(p) { pon_pref("x_snt_" + p, "nada"); });
 } else {
   $("#mibuffer2").html(dime_pref("lhs" + puntero_s));
-  partespos2.forEach((p) => {
-    let elem = $("#mibuffer2 .x_" + p);
+  partespos2.forEach(function(p) {
+    var elem = $("#mibuffer2 .x_" + p);
     pon_pref("x_snt_" + p, elem.length ? elem[0].outerHTML : "nada");
   });
 }
@@ -5439,13 +5662,13 @@ if (puntero_s == 500) {
   "evangelio",
 ];
 
-for (let index3 = 0; index3 < partespos3.length; ++index3) {
-  let selector = "#mibuffer4 .x_" + partespos3[index3];
-  let $elemento = $(selector);
+for (var index3 = 0; index3 < partespos3.length; ++index3) {
+  var selector = "#mibuffer4 .x_" + partespos3[index3];
+  var $elemento = $(selector);
 
   if ($elemento.length) {
     // 1. Guardar el HTML ORIGINAL antes de modificar
-    let midiv3 = $elemento[0].outerHTML;
+    var midiv3 = $elemento[0].outerHTML;
     pon_pref("x_snt_lct_" + partespos3[index3], midiv3);
 
     // 2. Modificar solo el contenido actual en el DOM
@@ -5456,16 +5679,16 @@ for (let index3 = 0; index3 < partespos3.length; ++index3) {
 }
 pon_pref("lhle502",$("#mibuffer4").html())
 
-let promesaCarga = $.Deferred();
+var promesaCarga = $.Deferred();
 if ($("#mibuffer2 .x_titulo a").filter('a[href^="m_estructura/comunes"]').length > 0) {
-  let micomun2 = $("#mibuffer2 .x_titulo a ").filter('a[href^="m_estructura/comunes"]').first().attr("href");
-  carga_pagina(micomun2).then((contenido) => {
+  var micomun2 = $("#mibuffer2 .x_titulo a ").filter('a[href^="m_estructura/comunes"]').first().attr("href");
+  carga_pagina(micomun2).then(function(contenido) {
     $("#mibuffer5").html(contenido);
     pon_pref("lhc_ultimo", 501);
     pon_pref("lhc_tope", 501);
     pon_pref("lhc501", contenido);
-    partespos2.forEach((p) => {
-      let elem = $("#mibuffer5 .x_" + p);
+    partespos2.forEach(function(p) {
+      var elem = $("#mibuffer5 .x_" + p);
       pon_pref("x_com_" + p, elem.length ? elem[0].outerHTML : "nada");
     });
     promesaCarga.resolve();
@@ -5480,14 +5703,14 @@ $.when(promesaCarga,promesaCargaTO).then(() => {
 });
       }
       function transformarHrefEnContenedor(contenedor) {
-  const $contenedor = $(contenedor);
+  var $contenedor = $(contenedor);
 
   $contenedor.find('a.boton').each(function () {
-    const $link = $(this);
-    const originalHref = $link.attr('href');
+    var $link = $(this);
+    var originalHref = $link.attr('href');
 
-    if (originalHref && !originalHref.startsWith("javascript: vete_a")) {
-      $link.attr('href', `javascript: vete_a('${originalHref}');`);
+    if (originalHref && originalHref.indexOf("javascript: vete_a") !== 0) {
+      $link.attr('href', "javascript: vete_a('" + originalHref + "');");
     }
   });
 }
@@ -5514,7 +5737,7 @@ $.when(promesaCarga,promesaCargaTO).then(() => {
 
       function reemplazarComentariosSoloEn($contenedor) {
   // Diccionario de traducciones por idioma y palabra clave
-  const traducciones = {
+  var traducciones = {
       "cast": { "BREVE": "más breve", "LARGO": "más largo", "O_BIEN": "o bien","SALMO": "Salmo", "LECT_1": "Primera Lectura","LECT_2":"Segunda lectura","ALELUYA":"Aleluya","EVANGELIO":"Evangelio", "LECCIONARIO":"Leccionario", "INDICE" : "ÍNDICE"},
       "engl": { "BREVE": "shorter", "LARGO": "longer", "O_BIEN": "or else","SALMO": "Psalm", "LECT_1": "First Reading","LECT_2":"Second Reading","ALELUYA":"","EVANGELIO":"Gospel", "LECCIONARIO":"Readings", "INDICE" : "INDEX" },
       "ital": { "BREVE": "più breve", "LARGO": "più lungo", "O_BIEN": "oppure","SALMO": "Salmo", "LECT_1": "Prima Lettura","LECT_2":"Seconda Lettura","ALELUYA":"Alleluia","EVANGELIO":"Vangelo", "LECCIONARIO":"Lezionario", "INDICE" : "INDICE" },
@@ -5526,11 +5749,11 @@ $.when(promesaCarga,promesaCargaTO).then(() => {
 
   $contenedor.contents().each(function procesar() {
         if (this.nodeType === 8) {
-            let textoComentario = this.nodeValue.trim();
+            var textoComentario = this.nodeValue.trim();
             if (traducciones.cast[textoComentario]) {
-                let contenedor = $(this).closest(".cast, .engl, .ital, .germ, .port, .fran, .latin");
-                let idioma = contenedor.length ? contenedor.attr("class").split(" ")[0] : "cast";
-                let textoReemplazo = traducciones[idioma]?.[textoComentario] || textoComentario;
+                var contenedor = $(this).closest(".cast, .engl, .ital, .germ, .port, .fran, .latin");
+                var idioma = contenedor.length ? contenedor.attr("class").split(" ")[0] : "cast";
+                var textoReemplazo = (traducciones[idioma] && traducciones[idioma][textoComentario]) ? traducciones[idioma][textoComentario] : textoComentario;
                 $(this).replaceWith(textoReemplazo);
             }
         } else if (this.nodeType === 1) {
@@ -5707,7 +5930,7 @@ mipreferencia['margen_inferior']=dime_pref("margen_inferior_defecto", 0)
   // esta funcion asegura que se han creado los indices de las pestañas. Pensado para el arranque inicial...
 
   //console.log('hola1')
-  const promesas = [];
+  var promesas = [];
   /*
   if (dime_pref("lhpf_tope", "nada") == "nada") {
     promesas.push(
