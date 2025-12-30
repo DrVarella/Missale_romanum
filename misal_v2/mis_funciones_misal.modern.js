@@ -2491,7 +2491,7 @@ function pinta_tabs(directorio, libro) {
         var texto =
           "<div id='cabecera' style='position: absolute; top: 0; left: 0; font-size: " +
           mipreferencia["tamanomenus"] +
-          "pt; text-align: center; background: black;'> <div id=cabecera style='margin-left: 2%; margin-right: 2%; height: 2.1em; padding-top: "+margenSuperior+"; width: 96%; z-index: 50000; '>"
+          "pt; text-align: center; background: black;'> <div id=cabecera style='margin-left: 2%; margin-right: 2%; height: 2.1em; width: 96%; z-index: 50000; '>"
 
         texto += "<ul class=pestanas tabnav_" + pestana + "'>"
         texto += "<li class='tab1' ontouchend='" + sitio1 + "'>Ord</li>"
@@ -2508,7 +2508,7 @@ function pinta_tabs(directorio, libro) {
         var texto =
           "<div id='cabecera' style='position: absolute; top: 0; left: 0; font-size: " +
           mipreferencia["tamanomenus"] +
-          "pt; text-align: center; background: black;'> <div id=cabecera style='margin-left: 2%; margin-right: 2%; padding-top: "+margenSuperior+"; height: 2.1em; width: 96%; z-index: 50000; '>"
+          "pt; text-align: center; background: black;'> <div id=cabecera style='margin-left: 2%; margin-right: 2%; height: 2.1em; width: 96%; z-index: 50000; '>"
 
         texto += "<ul style='' class='pestanas tabnav_" + pestana + "'>"
         texto += "<li class='tab1' ontouchend='" + sitio1 + "'>Ord</li>"
@@ -2529,7 +2529,7 @@ function pinta_tabs(directorio, libro) {
       var texto =
         "<style> #contenedor { top: 0; } </style><div id='cabecera' style='position: absolute; top: 0; left: 0;'></div><div id=cabecera2 style='position: absolute; top: 0; left: 0 ; height: 100%; font-size: " +
         mipreferencia["tamanomenus"] +
-        "pt; text-align: left; width: auto; opacity: .9; background: transparent; padding-top: "+margenSuperior+"; z-index: 50000; '> "
+        "pt; text-align: left; width: auto; opacity: .9; background: transparent; z-index: 50000; '> "
       texto +=
         "<div style='margin-top: 8em;'><div id=icono_abajo style='float: right; padding: 1em 0 1em 1em; display: none;' ontouchend= 'document.getElementById(\"tabnav" +
         pestana +
