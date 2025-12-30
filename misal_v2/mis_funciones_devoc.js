@@ -626,7 +626,7 @@ function toggle_pestanas(valor) {
 
 function arregla_top() {
   var safeAreaTop = 0;
-  $('#cabecera').css('padding-top', (parseInt(dime_pref('margen_superior_defecto', 16)) + safeAreaTop) + 'px');
+  $('#cabecera').css('padding-top', (parseInt(dime_pref('margen_superior_defecto', 0)) + safeAreaTop) + 'px');
   var padHeader = parseInt($("#cabecera").css("padding-top"));
   $("#contenedor").css("top", $("#cabecera").outerHeight(true) + "px");
   $("#icono-sticky, #icono-gear").css("top", parseInt($("#cabecera").outerHeight(true) + 30) + "px");
