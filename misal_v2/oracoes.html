@@ -2,83 +2,86 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <title>Orações - Kindle Hub</title>
     
     <style>
-        /* --- RESET & VARIÁVEIS --- */
+        /* =========================================
+           DESIGN SYSTEM (Tokens Shadcn-like)
+           ========================================= */
         :root {
-            --bg-color: #ffffff;
-            --text-color: #000000;
+            --background: #ffffff;
+            --foreground: #09090b;
+            --card: #ffffff;
+            --primary: #18181b;
+            --secondary: #f4f4f5;
+            --muted-foreground: #71717a;
+            --border: #e4e4e7;
+            --radius: 0.75rem;
+            --header-height: 60px;
+            --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             --rubric-color: #cc0000;
             --theme-red: #8B0000;
-            --font-main: Helvetica, Arial, sans-serif;
-            /* DICA: Se o espaçamento falhar no Kindle, troque var(--spacing) por 16px direto nas regras */
-            --spacing: 16px; 
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
 
-        body {
-            font-family: var(--font-main);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            height: 100vh;
-            overflow: hidden; 
-            display: flex;
-            flex-direction: column;
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: var(--font-sans);
         }
 
-        /* --- CABEÇALHO UNIFICADO --- */
-        header {
-            padding: 10px var(--spacing);
+        /* App Shell */
+        .app-shell {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: var(--background);
+        }
+
+        /* Header */
+        .app-header {
+            height: var(--header-height);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid #ccc;
-            background: #fff;
+            padding: 0 1.25rem;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            padding-top: env(safe-area-inset-top);
             flex-shrink: 0;
-            z-index: 10;
-            position: relative;
-            height: 60px;
         }
 
-        .header-left {
+        .app-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .btn-icon {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
-            /* gap: 15px; -> REMOVIDO */
-            z-index: 2;
+            justify-content: center;
+            color: var(--foreground);
+            cursor: pointer;
+            transition: all 0.2s;
         }
+        .btn-icon:active { background-color: var(--secondary); transform: scale(0.96); }
 
-        /* Substituto do gap para o cabeçalho esquerdo */
-        .header-left > * {
-            margin-right: 15px;
-        }
-        .header-left > *:last-child {
-            margin-right: 0;
-        }
-
-        /* Título Centralizado Absoluto */
-        header h1 { 
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 32px; 
-            font-weight: bold; 
-            margin: 0;
-            white-space: nowrap;
-            z-index: 1;
-        }
-
-        /* Botões de Idioma (Direita) */
+        /* Botões de Idioma (Direita do Header) */
         .lang-group { 
             display: flex; 
-            /* gap: 5px; -> REMOVIDO */
-            z-index: 2;
         }
-
-        /* Substituto do gap para os botões de idioma */
         .lang-group .mini-btn {
             margin-right: 5px;
         }
@@ -87,219 +90,221 @@
         }
 
         .mini-btn {
-            background: #fff;
-            border: 1px solid #000;
-            padding: 4px 8px;
-            font-weight: bold;
-            border-radius: 4px;
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            font-weight: 500;
+            border-radius: 0.5rem;
             cursor: pointer;
-            font-size: 15px;
+            font-size: 13px;
             font-family: inherit;
+            color: var(--foreground);
+            transition: all 0.2s;
         }
+        .mini-btn:active { transform: scale(0.96); }
         .mini-btn.active {
-            background: #000;
+            background: var(--primary);
             color: #fff;
+            border-color: var(--primary);
         }
 
-        /* --- ÁREA DE NAVEGAÇÃO --- */
+        /* Área de Navegação */
         .nav-area {
             flex-shrink: 0;
-            background: #fff;
-            border-bottom: 1px solid #e0e0e0;
+            background: var(--background);
+            border-bottom: 1px solid var(--border);
             display: flex;
             flex-direction: column;
         }
 
-        /* =========================================
-        Nível 1: Categorias (Vermelhas)
-        ========================================= */
+        /* Nível 1: Categorias */
         .category-scroll {
             display: flex;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            /* gap removido */
-            padding: 12px var(--spacing); 
-            background: #fff;
+            padding: 12px 1.25rem;
+            background: var(--background);
             scrollbar-width: none;
         }
-
         .category-scroll::-webkit-scrollbar { display: none; }
 
         .cat-chip {
-            /* Substituto do gap */
             margin-right: 8px;
-            
             border: 1px solid var(--theme-red);
             color: var(--theme-red);
-            border-radius: 12px;
-            padding: 6px 12px;
+            border-radius: var(--radius);
+            padding: 8px 14px;
             font-size: 14px;
             background: white;
             cursor: pointer;
             font-family: inherit;
             white-space: nowrap;
             flex-shrink: 0;
+            transition: all 0.2s;
+            font-weight: 500;
         }
-
-        /* Tira margem do último */
-        .category-scroll .cat-chip:last-child {
-            margin-right: 0;
-        }
-
+        .category-scroll .cat-chip:last-child { margin-right: 0; }
+        .cat-chip:active { transform: scale(0.96); }
         .cat-chip.active {
             background: var(--theme-red);
             color: #fff;
-            font-weight: bold;
+            font-weight: 600;
         }
 
-        /* =========================================
-        Nível 2: Orações (Cinzas)
-        ========================================= */
+        /* Nível 2: Orações */
         .prayers-scroll {
             display: flex;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            /* gap removido */
-            padding: 8px var(--spacing);
-            background: #f9f9f9;
+            padding: 10px 1.25rem;
+            background: var(--secondary);
             scrollbar-width: none;
-            border-top: 1px solid #eee;
+            border-top: 1px solid var(--border);
         }
-
         .prayers-scroll::-webkit-scrollbar { display: none; }
 
         .prayer-chip {
-            /* Substituto do gap */
             margin-right: 8px;
-            
-            border: 1px solid #999;
+            border: 1px solid var(--border);
             border-radius: 50px;
             padding: 6px 14px;
             font-size: 13px;
             white-space: nowrap;
             background: white;
-            color: #333;
+            color: var(--foreground);
             cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
         }
+        .prayers-scroll .prayer-chip:last-child { margin-right: 0; }
+        .prayer-chip:active { background: var(--border); transform: scale(0.96); }
 
-        /* Tira margem do último */
-        .prayers-scroll .prayer-chip:last-child {
-            margin-right: 0;
-        }
-
-        .prayer-chip:active { background: #ddd; }
-
-        /* --- CONTEÚDO --- */
+        /* Conteúdo com Scroll */
         .content-area {
             flex: 1;
             overflow-y: auto;
-            padding: 20px var(--spacing);
+            padding: 1.5rem;
+            padding-bottom: 5rem;
             width: 100%;
             max-width: 900px;
             margin: 0 auto;
             scroll-behavior: smooth;
         }
 
-        /* --- ESTILOS DO CORPO DA ORAÇÃO --- */
-        .prayer-block { 
-            margin-bottom: 25px; 
-            border-bottom: 1px dashed #ccc; 
+        /* Cards e Blocos de Oração */
+        .prayer-block {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         .prayer-title { 
-            font-size: 22px; 
-            font-weight: bold; 
+            font-size: 1.1rem; 
+            font-weight: 700; 
             text-align: center; 
-            margin-bottom: 20px; 
-            padding-bottom: 10px; 
-            border-bottom: 3px solid #000; 
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--secondary);
+            color: var(--foreground);
         }
 
         .prayer-body { 
             display: flex; 
-            /* gap: 20px; -> REMOVIDO */
         }
-
-        /* Substituto do gap para as colunas de texto */
         .prayer-body .col {
             margin-right: 20px;
         }
-        /* Importante: Se uma coluna estiver oculta (display: none), 
-        a coluna visível restante se torna a last-child automaticamente 
-        e perde a margem. Isso mantém o layout funcionando. */
         .prayer-body .col:last-child {
             margin-right: 0;
         }
 
         .col { 
             flex: 1; 
-            font-size: 18px; 
-            line-height: 1.5; 
+            font-size: 1rem; 
+            line-height: 1.6; 
             text-align: justify; 
         }
 
         /* Tipografia interna */
-        .col p { margin-bottom: 12px; }
+        .col p { margin-bottom: 0.75rem; }
+        .col p:last-child { margin-bottom: 0; }
         .rub { color: var(--rubric-color); font-size: 0.85em; font-style: italic; }
         .cn { text-align: center; display: block; margin: 10px 0; font-style: italic; }
 
-        /* --- LÓGICA DE VISUALIZAÇÃO (Títulos e Colunas) --- */
-
-        /* 1. Controle dos Títulos */
+        /* Lógica de Visualização (Títulos e Colunas) */
         .title-pt, .title-la, .title-dual { display: none; }
-
         .view-pt .title-pt { display: block; }
         .view-la .title-la { display: block; }
         .view-dual .title-dual { display: block; }
 
-        /* 2. Controle das Colunas de Texto */
         .view-pt .col-la { display: none; }
         .view-la .col-pt { display: none; }
 
         /* Estilo específico do modo Dual (Ambos) */
         .view-dual .col { 
-            border-right: 1px solid #eee; 
+            border-right: 1px solid var(--border); 
             padding-right: 15px; 
         }
-
-        /* 3. TRUQUE DE BORDA/PADDING */
         .view-dual .col:last-child { border-right: none; padding-right: 0; }
-        .view-dual .col:only-child { border: none; padding: 0; font-size: 18px; }
+        .view-dual .col:only-child { border: none; padding: 0; }
 
-        /* Botão Topo */
+        /* Botão Voltar ao Topo */
         #btnVoltarTopo {
-            position: fixed; bottom: 20px; right: 20px; width: 45px; height: 45px;
-            background: #000; color: #fff; border: none; border-radius: 50%;
-            font-size: 20px; cursor: pointer; opacity: 0; visibility: hidden; transition: 0.3s;
-            display: flex; align-items: center; justify-content: center; z-index: 99;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
+        #btnVoltarTopo:active { transform: scale(0.96); }
         #btnVoltarTopo.visivel { opacity: 1; visibility: visible; }
+
+        /* Esconder elementos legados */
+        #piedepantalla, #header, #menu_diamante { display: none !important; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="header-left">
+    <div class="app-shell">
+        <header class="app-header">
             <button class="btn-icon" onclick="window.history.back();" aria-label="Voltar">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             </button>
+
+            <div class="app-title">Orações</div>
+
+            <div class="lang-group">
+                <button class="mini-btn active" onclick="setMode('pt', this)">PT</button>
+                <button class="mini-btn" onclick="setMode('la', this)">LA</button>
+                <button class="mini-btn" onclick="setMode('dual', this)">Ambos</button>
+            </div>
+        </header>
+
+        <div class="nav-area">
+            <div class="category-scroll" id="catNav"></div>
+            <div class="prayers-scroll" id="prayerNav"></div>
         </div>
 
-        <h1>Orações</h1>
-
-        <div class="lang-group">
-            <button class="mini-btn active" onclick="setMode('pt', this)">PT</button>
-            <button class="mini-btn" onclick="setMode('la', this)">LA</button>
-            <button class="mini-btn" onclick="setMode('dual', this)">Ambos</button>
-        </div>
-    </header>
-
-    <div class="nav-area">
-        <div class="category-scroll" id="catNav"></div>
-        <div class="prayers-scroll" id="prayerNav"></div>
+        <div class="content-area view-pt" id="mainContent"></div>
     </div>
 
-    <div class="content-area view-pt" id="mainContent"></div>
     <button id="btnVoltarTopo" onclick="scrollToTop()">↑</button>
 
     <script>
@@ -2989,8 +2994,10 @@ preces_opus_dei: {
             contentDiv.classList.add('view-' + mode);
         }
 
-        window.addEventListener('scroll', function() {
-            if (window.scrollY > 300) {
+        // Listener para botão voltar ao topo
+        const scrollableContent = document.getElementById('mainContent');
+        scrollableContent.addEventListener('scroll', function() {
+            if (scrollableContent.scrollTop > 300) {
                 btnVoltarTopo.classList.add('visivel');
             } else {
                 btnVoltarTopo.classList.remove('visivel');
@@ -2998,7 +3005,7 @@ preces_opus_dei: {
         });
 
         function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            scrollableContent.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Se o objeto estiver vazio (antes de você colar), evita erro
