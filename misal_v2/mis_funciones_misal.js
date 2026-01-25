@@ -188,6 +188,10 @@ function inicia_ord() {
                         $("ul.pestanas").addClass("tabnav_o");
                         $("#bot_adelante").css("visibility", "hidden");
                         $("#bot_atras").css("visibility", "hidden");
+                        // Expande as seções automaticamente após carregar o ordinário
+                        if (mipreferencia["ordinarionormal"] == 0) {
+                            setTimeout(function() { cargado2(); }, 50);
+                        }
                     }));
                     return [4 /*yield*/, Promise.all(promesas)];
                 case 1:
@@ -2023,16 +2027,28 @@ function getUrlVars() {
     return vars;
 }
 function cargado2() {
-    // Executa diretamente a lógica do superbot_1_1 (expandir todas as seções)
+    // Expande diretamente todas as seções do ordinário
     // Isso é mais confiável que trigger("touchend") em dispositivos como Kindle
     try {
-        $(".boton_mas span").each(function() {
-            $(this).trigger("touchend").trigger("click");
-        });
-        setTimeout(function() {
-            muestraono("superbot_1", false);
-            muestraono("superbot_2", true);
-        }, 10);
+        // Mostra todas as seções principais
+        muestraono("ritos_iniciales", true);
+        muestraono("liturgia_palabra", true);
+        muestraono("liturgia_eucaristica_1", true);
+        muestraono("liturgia_eucaristica_2", true);
+        muestraono("liturgia_eucaristica_3", true);
+        muestraono("liturgia_eucaristica_4", true);
+
+        // Esconde todos os botões "+"
+        muestraono("botonmas1", false);
+        muestraono("botonmas2", false);
+        muestraono("botonmas3", false);
+        muestraono("botonmas4", false);
+        muestraono("botonmas5", false);
+        muestraono("botonmas6", false);
+
+        // Alterna o superbot (mostra "---" em vez de "+++")
+        muestraono("superbot_1", false);
+        muestraono("superbot_2", true);
     } catch (e) {
         console.log("Erro ao expandir seções:", e);
     }
@@ -2996,9 +3012,8 @@ function cambia_a_pest(pestanaloc, destino) {
     };
     // Lanzar scroll cuando todo esté en su sitio
     setTimeout(function () {
-        if (pestanaloc == "o") {
-            setTimeout(cargado2, 100);
-        }
+        // cargado2 agora é chamado dentro de inicia_ord() após carregar o conteúdo
+        // Removido aqui para evitar chamada duplicada
         var hacerScroll = function () {
             try {
                 if (typeof myScroll !== 'undefined') {
