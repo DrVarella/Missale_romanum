@@ -42,6 +42,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (window.__missalWebShimInstalled)
             return;
         window.__missalWebShimInstalled = true;
+
+        // Detecta Kindle (navegador Silk ou user agent Kindle)
+        window.esKindle = /Kindle|Silk|KFTT|KFOT|KFJW|KFJWA|KFAP|KFAPW|KFARW|KFASWI|KFTHW|KFSOW/i.test(navigator.userAgent);
         // Stubs mínimos para o app não quebrar fora do Cordova
         if (!window.plugins)
             window.plugins = {};
@@ -200,7 +203,30 @@ function loadedAsync() {
         console.log('Estoy en 4');
         var espera = 1;
         toggle_pestanas(0);
-        myScroll = new iScroll("contenedor", {
+
+        // No Kindle, usa scroll nativo em vez de iScroll
+        if (window.esKindle) {
+            console.log('Kindle: usando scroll nativo, iScroll desativado');
+            // Mock do myScroll para compatibilidade
+            myScroll = {
+                y: 0,
+                refresh: function() {},
+                scrollTo: function(x, y) {
+                    var contenedor = document.getElementById('contenedor');
+                    if (contenedor) contenedor.scrollTop = Math.abs(y);
+                },
+                scrollToElement: function(el) {
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                },
+                scrollToPage: function() {
+                    var contenedor = document.getElementById('contenedor');
+                    if (contenedor) contenedor.scrollTop = 0;
+                },
+                enable: function() {},
+                disable: function() {}
+            };
+        } else {
+            myScroll = new iScroll("contenedor", {
             hScrollbar: false,
             vScrollbar: false,
             fixedScrollbar: false,
@@ -253,6 +279,7 @@ function loadedAsync() {
                 return false;
             },
         });
+        } // fecha o else do esKindle
         console.log('Estoy en 6');
         document.addEventListener("deviceready", onDeviceReady2, false);
         var headerBottom = document.getElementById("cabecera").getBoundingClientRect().bottom;
@@ -1996,7 +2023,19 @@ function getUrlVars() {
     return vars;
 }
 function cargado2() {
-    $("#superbot_1_1").trigger("touchend").trigger("click");
+    // Executa diretamente a lógica do superbot_1_1 (expandir todas as seções)
+    // Isso é mais confiável que trigger("touchend") em dispositivos como Kindle
+    try {
+        $(".boton_mas span").each(function() {
+            $(this).trigger("touchend").trigger("click");
+        });
+        setTimeout(function() {
+            muestraono("superbot_1", false);
+            muestraono("superbot_2", true);
+        }, 10);
+    } catch (e) {
+        console.log("Erro ao expandir seções:", e);
+    }
     $(".respuesta").remove();
     if ($("input.x_tmp_precedencia").length) {
         preced_tmp = Number($("input.x_tmp_precedencia").val());

@@ -17,6 +17,19 @@
             overflow: hidden;
         }
 
+        /* Scroll nativo para Kindle e dispositivos com problemas de iScroll */
+        html.scroll-nativo body,
+        html.scroll-nativo #contenedor {
+            overflow: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch;
+        }
+        html.scroll-nativo #scroller {
+            position: relative !important;
+            transform: none !important;
+            -webkit-transform: none !important;
+        }
+
         #piedepantalla {
     margin: 0;
     text-align: center;
@@ -87,6 +100,17 @@
 
 <script type="text/javascript" charset="utf-8" src="../cordova_loader.js"></script>
 
+    <script>
+    // Detecta Kindle e ativa scroll nativo
+    (function() {
+        var esKindle = /Kindle|Silk|KFTT|KFOT|KFJW|KFJWA|KFAP|KFAPW|KFARW|KFASWI|KFTHW|KFSOW/i.test(navigator.userAgent);
+        if (esKindle) {
+            document.documentElement.classList.add('scroll-nativo');
+            window.esKindle = true;
+            console.log('Kindle detectado - usando scroll nativo');
+        }
+    })();
+    </script>
     <script src="../iscroll-lite.js"></script>
     <script type="text/javascript" charset="utf-8" src="../jquery.js"></script>
     <script
