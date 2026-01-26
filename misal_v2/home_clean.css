@@ -116,7 +116,7 @@ body {
     border: 1px solid #d1d5db;
     border-radius: 12px;
     overflow: hidden;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
@@ -421,7 +421,7 @@ body {
     }
 
     .calendar-card {
-        margin-bottom: 25px;
+        margin-bottom: 10px;
     }
 
     .fiat-btn {

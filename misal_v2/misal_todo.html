@@ -30,71 +30,149 @@
             -webkit-transform: none !important;
         }
 
+        /* =========================================
+           SEGMENTED TABS - NOVO ESTILO
+           ========================================= */
+        div#cabecera {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            z-index: 50000 !important;
+            padding: 4px 2px !important;
+            padding-top: max(4px, env(safe-area-inset-top)) !important;
+            box-sizing: border-box !important;
+            display: block !important;
+            margin: 0 !important;
+        }
+
+        .segmented {
+            position: relative;
+            display: flex;
+            width: 100%;
+            height: 39px;
+            margin: 0;
+            background: #D2D1D9;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            border-bottom: 2px solid #e0e0e0;
+            box-sizing: border-box;
+        }
+
+        .seg-item {
+            flex: 1 1 0;
+            height: 39px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-style: italic;
+            font-weight: 700;
+
+            font-size: clamp(11px, 2.4vw, 16px);
+            line-height: 1;
+            text-transform: uppercase;
+            text-align: center;
+            color: #FFFFFF;
+            font-variation-settings: 'slnt' -5;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 2px;
+        }
+
+        .seg-item::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 100%;
+            border-right: 2px solid #FFFFFF;
+        }
+        .seg-item:last-child::after { display: none; }
+
+        .seg-item:first-child { border-radius: 15px 0 0 15px; }
+        .seg-item:last-child { border-radius: 0 15px 15px 0; }
+
+        .seg-item.active {
+            background: #000000;
+        }
+
+        .seg-item:not(.active):hover {
+            background: rgba(255,255,255,0.10);
+        }
+
         #piedepantalla {
-    margin: 0;
-    text-align: center;
-    background-color: maroon;
-    color: white;
-                border:0px;
-                position: fixed;  /* Fijo en la pantalla */
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                height: 2.1em;
-                display: table;
-}
+            margin: 0;
+            text-align: center;
+            background-color: maroon;
+            color: white;
+            border: 0px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2.1em;
+            display: table;
+        }
 
-  /* Solo en iOS */
-  @supports (padding-bottom: env(safe-area-inset-bottom)) {
-      #piedepantalla {
-          padding-bottom: env(safe-area-inset-bottom);
-      }
-      body {
-          padding-bottom: env(safe-area-inset-bottom);
-      }
-  }
-		
-      .visibleb {
-        display: inline-block;
-      }
+        /* Solo en iOS */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            #piedepantalla {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            body {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
 
-      .novisibleb {
-        display: none;
-      }
-      .visibeilb {
-        display: inline-block;
-      }
-      .visibeil {
-        display: inline;
-      }
-      #icono-sticky {
-        position: absolute;
-  right: 0em;
-  text-align: left;
-  width: auto;
-  max-width: 45%;
-  opacity: 0.9;
-  background: transparent;
-  z-index: 50000;
-}
+        .visibleb {
+            display: inline-block;
+        }
 
-#mis_intenciones0 {
-  background-color: maroon; 
-  color: white; 
-  opacity: .8; 
-  border-radius: 5px;
-  display: none;
-  max-height: 50vh;
-  max-width: 100%;
-  min-width: 50%;
-  overflow-y: auto;
-}
+        .novisibleb {
+            display: none;
+        }
+        .visibeilb {
+            display: inline-block;
+        }
+        .visibeil {
+            display: inline;
+        }
 
-#mis_intenciones {
-  padding: 1em; 
-  opacity: .8; 
-  border-radius: 5px;
-}
+        #icono-sticky {
+            position: absolute;
+            right: 0em;
+            text-align: left;
+            width: auto;
+            max-width: 45%;
+            opacity: 0.9;
+            background: transparent;
+            z-index: 50000;
+        }
+
+        #mis_intenciones0 {
+            background-color: maroon;
+            color: white;
+            opacity: .8;
+            border-radius: 5px;
+            display: none;
+            max-height: 50vh;
+            max-width: 100%;
+            min-width: 50%;
+            overflow-y: auto;
+        }
+
+        #mis_intenciones {
+            padding: 1em;
+            opacity: .8;
+            border-radius: 5px;
+        }
 </style>
 
 
@@ -131,9 +209,48 @@
   </head>
 
   <body onload=" ">
+    <!-- Novo cabecera com estilo segmented -->
+    <div id="cabecera">
+        <div class="segmented" id="chipsNav">
+            <button class="seg-item active" data-tab="o" ontouchend="segmentClick(this, 'o')" onclick="segmentClick(this, 'o')">Ord</button>
+            <button class="seg-item" data-tab="t" ontouchend="segmentClick(this, 't')" onclick="segmentClick(this, 't')">Tmp</button>
+            <button class="seg-item" data-tab="s" ontouchend="segmentClick(this, 's')" onclick="segmentClick(this, 's')">Snt</button>
+            <button class="seg-item" data-tab="c" ontouchend="segmentClick(this, 'c')" onclick="segmentClick(this, 'c')">Com</button>
+            <button class="seg-item" data-tab="le" ontouchend="segmentClick(this, 'le')" onclick="segmentClick(this, 'le')">Lct</button>
+            <button class="seg-item" data-tab="pf" ontouchend="segmentClick(this, 'pf')" onclick="segmentClick(this, 'pf')">Pf</button>
+            <button class="seg-item" data-tab="pe" ontouchend="segmentClick(this, 'pe')" onclick="segmentClick(this, 'pe')">PE</button>
+        </div>
+    </div>
+
+    <script>
+    // Função para mudar de tab com o novo estilo segmented
+    function segmentClick(el, tab) {
+        // Remove active de todos
+        document.querySelectorAll('.seg-item').forEach(function(item) {
+            item.classList.remove('active');
+        });
+        // Adiciona active ao clicado
+        el.classList.add('active');
+        // Chama a função original
+        cambia_a_pest(tab);
+    }
+
+    // Atualiza o visual do segmented quando muda de tab por outra via
+    function updateSegmentedActive(tab) {
+        document.querySelectorAll('.seg-item').forEach(function(item) {
+            item.classList.remove('active');
+            if (item.getAttribute('data-tab') === tab) {
+                item.classList.add('active');
+            }
+        });
+    }
+    </script>
+
+    <!-- Chama pinta_tabs para criar menus e aplicar estilos (o cabecera já existe acima) -->
     <script type="text/javascript">
       pinta_tabs("../", mipestana)
     </script>
+
     <div id="icono-sticky">
       <img src="../estrella_intenc4.png" alt="Icono"
         style="float: right; height: 3em;"

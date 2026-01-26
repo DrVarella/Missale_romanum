@@ -211,20 +211,47 @@ function loadedAsync() {
         // No Kindle, usa scroll nativo em vez de iScroll
         if (window.esKindle) {
             console.log('Kindle: usando scroll nativo, iScroll desativado');
-            // Mock do myScroll para compatibilidade
+            // Mock do myScroll para compatibilidade com scroll nativo no Kindle
             myScroll = {
                 y: 0,
-                refresh: function() {},
-                scrollTo: function(x, y) {
+                refresh: function() {
                     var contenedor = document.getElementById('contenedor');
-                    if (contenedor) contenedor.scrollTop = Math.abs(y);
+                    if (contenedor) this.y = -contenedor.scrollTop;
                 },
-                scrollToElement: function(el) {
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                scrollTo: function(x, y, time, relative) {
+                    var contenedor = document.getElementById('contenedor');
+                    if (!contenedor) return;
+
+                    var newScrollTop;
+                    if (relative) {
+                        // iScroll: y positivo = scroll para cima, y negativo = scroll para baixo
+                        // scrollTop: aumenta para baixo
+                        newScrollTop = contenedor.scrollTop - y;
+                    } else {
+                        // Posição absoluta (y é negativo no iScroll)
+                        newScrollTop = Math.abs(y);
+                    }
+
+                    // Garante que não seja negativo
+                    newScrollTop = Math.max(0, newScrollTop);
+
+                    if (time && time > 0) {
+                        // Scroll suave
+                        contenedor.scrollTo({ top: newScrollTop, behavior: 'smooth' });
+                    } else {
+                        contenedor.scrollTop = newScrollTop;
+                    }
+                    this.y = -newScrollTop;
+                },
+                scrollToElement: function(el, time) {
+                    if (el) el.scrollIntoView({ behavior: time ? 'smooth' : 'auto' });
                 },
                 scrollToPage: function() {
                     var contenedor = document.getElementById('contenedor');
-                    if (contenedor) contenedor.scrollTop = 0;
+                    if (contenedor) {
+                        contenedor.scrollTop = 0;
+                        this.y = 0;
+                    }
                 },
                 enable: function() {},
                 disable: function() {}
@@ -1608,7 +1635,7 @@ function arreglaCarga(pestana) {
 }
 function arregla_top() {
     var safeAreaTop = 0; //parseInt(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-top)')) || 0;
-    $('#cabecera').css('padding-top', (parseInt(dime_pref('margen_superior_defecto', 16)) + safeAreaTop) + 'px');
+    $('#cabecera').css('padding-top', (parseInt(dime_pref('margen_superior_defecto', 2)) + safeAreaTop) + 'px');
     padHeader = parseInt($("#cabecera").css("padding-top"));
     $("#contenedor").css("top", $("#cabecera").outerHeight(true) + "px");
     $("#icono-sticky, #icono-gear").css("top", parseInt($("#cabecera").outerHeight(true) + 30) + "px");
@@ -2079,27 +2106,32 @@ function cargado2() {
                 lect_sant_prior = true;
                 $(".no_fiestas").remove();
             }
-            $("#bot_global .bot_snt").trigger("touchend").trigger("click");
+            // Chama activa_bot diretamente (mais confiável no Kindle)
+            activa_bot(".bot_snt.activo", "snt", "global");
             pon_pref("opcion_elegida", "2");
         }
         else {
-            $("#bot_global .bot_tmp").trigger("touchend").trigger("click");
+            // Chama activa_bot diretamente (mais confiável no Kindle)
+            activa_bot(".bot_tmp.activo", "tmp", "global");
             pon_pref("opcion_elegida", "1");
         }
     }
     else {
         if (opcion_elegida == 1) {
-            $("#bot_global .bot_tmp").trigger("touchend").trigger("click");
+            // Chama activa_bot diretamente (mais confiável no Kindle)
+            activa_bot(".bot_tmp.activo", "tmp", "global");
         }
         if (opcion_elegida == 2) {
             if (preced_snt <= 8 || $("span.lect_obl").length != 0) {
                 lect_sant_prior = true;
                 $(".no_fiestas").remove();
             }
-            $("#bot_global .bot_snt").trigger("touchend").trigger("click");
+            // Chama activa_bot diretamente (mais confiável no Kindle)
+            activa_bot(".bot_snt.activo", "snt", "global");
         }
         if (opcion_elegida == 3)
-            $("#bot_global .bot_com").trigger("touchend").trigger("click");
+            // Chama activa_bot diretamente (mais confiável no Kindle)
+            activa_bot(".bot_com.activo", "com", "global");
     }
     //        muestraono("ritos_iniciales",true); muestraono("botonmas1",false); muestraono("liturgia_palabra",true); muestraono("botonmas2",false); muestraono("liturgia_eucaristica_1",true); muestraono("botonmas3",false); muestraono("liturgia_eucaristica_2",true); muestraono("botonmas4",false); muestraono("liturgia_eucaristica_3",true); muestraono("botonmas5",false); muestraono("liturgia_eucaristica_4",true); muestraono("botonmas6",false);  muestraono("superbot_1",false); muestraono("superbot_2",true);
     //        if ($('#bot_global .bot_tmp').hasClass('activo'))  activa_bot('.bot_tmp.activo','tmp','global');
@@ -2333,7 +2365,16 @@ function pinta_tabs(directorio, libro) {
     sitio7 = 'cambia_a_pest("pe")';
     sitio8 = 'cambia_a_pest("i")';
     mispestanas = ".tabnav_" + pestana;
-    if (libro == "dev") {
+
+    // Verifica se já existe cabecera com estilo segmented (novo estilo)
+    var cabeceraExiste = document.getElementById('cabecera');
+    var usarSegmented = cabeceraExiste && document.getElementById('chipsNav');
+
+    if (usarSegmented) {
+        // Cabecera segmented já existe no HTML, não criar novamente
+        var texto = "";
+    }
+    else if (libro == "dev") {
         pestana = "9";
         var texto = "<div id=cabecera style='text-align: center; position: fixed; top: 0; left: 0; width: 100%; border-bottom: 1px solid #aa0000; padding-bottom: 1%; " +
             mitexto +
@@ -2374,7 +2415,7 @@ function pinta_tabs(directorio, libro) {
             if (!estoymac) {
                 var texto = "<div id='cabecera' style='position: absolute; top: 0; left: 0; font-size: " +
                     mipreferencia["tamanomenus"] +
-                    "pt; text-align: center; background: black;'> <div id=cabecera style='margin-left: 2%; margin-right: 2%; height: 2.1em; padding-top: " + margenSuperior + "; width: 96%; z-index: 50000; '>";
+                    "pt; text-align: center;'> <div id=cabecera style='margin-left: 2%; margin-right: 2%; height: 2.1em; padding-top: " + margenSuperior + "; width: 96%; z-index: 50000; '>";
                 texto += "<ul class=pestanas tabnav_" + pestana + "'>";
                 texto += "<li class='tab1' ontouchend='" + sitio1 + "'>Ord</li>";
                 texto += "<li class='tab2' ontouchend='" + sitio2 + "'>Tmp</li>";
@@ -2390,7 +2431,7 @@ function pinta_tabs(directorio, libro) {
             else {
                 var texto = "<div id='cabecera' style='position: absolute; top: 0; left: 0; font-size: " +
                     mipreferencia["tamanomenus"] +
-                    "pt; text-align: center; background: black;'> <div id=cabecera style='margin-left: 2%; margin-right: 2%; padding-top: " + margenSuperior + "; height: 2.1em; width: 96%; z-index: 50000; '>";
+                    "pt; text-align: center;'> <div id=cabecera style='margin-left: 2%; margin-right: 2%; padding-top: " + margenSuperior + "; height: 2.1em; width: 96%; z-index: 50000; '>";
                 texto += "<ul style='' class='pestanas tabnav_" + pestana + "'>";
                 texto += "<li class='tab1' ontouchend='" + sitio1 + "'>Ord</li>";
                 texto += "<li class='tab2' ontouchend='" + sitio2 + "'>Tmp</li>";
@@ -2454,7 +2495,10 @@ function pinta_tabs(directorio, libro) {
             texto += "</div>";
         }
     }
-    document.write(texto);
+    // Só escreve o cabecera se não estiver usando o estilo segmented
+    if (texto && texto.length > 0) {
+        document.write(texto);
+    }
     // menu para guardar posicion de lecturas
     texto =
         "<div id=menu_grabar style='position: absolute; bottom: 2em; right: 50%; width: auto; font-weight: bold; display: none; z-index: 30000; text-align: right;' ><ul class=ul_normal id=tab_grabar >";
@@ -2980,6 +3024,10 @@ function cambia_a_pest(pestanaloc, destino) {
     $("ul.pestanas").addClass("tabnav_" + pestanaloc);
     $("#tab_" + pestanaloc).css("display", "block");
     mipestana = pestanaloc;
+    // Atualiza o visual do segmented tabs (novo estilo)
+    if (typeof updateSegmentedActive === 'function') {
+        updateSegmentedActive(pestanaloc);
+    }
     arreglaCarga(mipestana);
     ajusta_idiomas(nuevoidioma1, nuevoidioma2);
     console.log("Ir a pestaña " + pestanaloc + " con scroll a: " + posicion);
